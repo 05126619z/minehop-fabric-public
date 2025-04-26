@@ -1,41 +1,26 @@
 package net.nerdorg.minehop.item.custom;
 
-import com.mojang.logging.LogUtils;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageSources;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.predicate.entity.DamageSourcePredicate;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import net.nerdorg.minehop.Minehop;
-import net.nerdorg.minehop.damage.ModDamageSources;
-import net.nerdorg.minehop.damage.ModDamageTypes;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.util.Logger;
 import net.nerdorg.minehop.util.ZoneUtil;
-import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.*;
 
@@ -94,7 +79,7 @@ public class InstagibItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (world instanceof ServerWorld serverWorld) {
             ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) user;
             if (!gibDelayList.containsKey(user.getNameForScoreboard()) || serverWorld.getServer().getTicks() > gibDelayList.get(user.getNameForScoreboard()) + 15) {
@@ -105,14 +90,14 @@ public class InstagibItem extends Item {
 
                 // Calculate the end position 64 blocks away in the look direction
                 Vec3d endPos = startPos.add(lookVec.x * 64, lookVec.y * 64, lookVec.z * 64);
-                serverPlayerEntity.playSound(SoundEvents.ENTITY_WARDEN_ATTACK_IMPACT, SoundCategory.PLAYERS, 1f, 1f);
+                serverPlayerEntity.playSoundToPlayer(SoundEvents.ENTITY_WARDEN_ATTACK_IMPACT, SoundCategory.PLAYERS, 1f, 1f);
                 serverWorld.playSound(user, user.getBlockPos(), SoundEvents.ENTITY_WARDEN_ATTACK_IMPACT, SoundCategory.PLAYERS, 1f, 1f);
 
                 EntityHitResult entityHitResult = raycastEntities(serverPlayerEntity, startPos, endPos, 64);
                 if (entityHitResult != null) {
                     endPos = entityHitResult.getPos();
                     Entity hitEntity = entityHitResult.getEntity();
-                    serverPlayerEntity.playSound(SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.PLAYERS, 1f, 1f);
+                    serverPlayerEntity.playSoundToPlayer(SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.PLAYERS, 1f, 1f);
                     handleInstaGibHit(serverPlayerEntity, hitEntity);
                     handleGibParticles(serverWorld, startPos, endPos);
                 }
@@ -122,9 +107,9 @@ public class InstagibItem extends Item {
 
                 gibDelayList.put(user.getNameForScoreboard(), serverWorld.getServer().getTicks());
             }
-            return TypedActionResult.consume(user.getStackInHand(hand));
+            return ActionResult.CONSUME;// (user.getStackInHand(hand));
         }
-        return TypedActionResult.consume(user.getStackInHand(hand));
+        return ActionResult.CONSUME; //TypedActionResult.consume(user.getStackInHand(hand));
     }
 
     private void handleGibParticles(ServerWorld world, Vec3d startPos, Vec3d endPos) {
@@ -174,11 +159,11 @@ public class InstagibItem extends Item {
                     List<Vec3d> randomCheckpoint = checkpointPositions.get(random.nextInt(0, checkpointPositions.size()));
                     Vec3d targetPos = randomCheckpoint.get(0);
                     Vec3d rotPos = randomCheckpoint.get(1);
-                    target.teleport(foundWorld, targetPos.getX(), targetPos.getY(), targetPos.getZ(), PositionFlag.VALUES, (float) rotPos.getY(), (float) rotPos.getX());
+                    target.teleport(foundWorld, targetPos.getX(), targetPos.getY(), targetPos.getZ(), PositionFlag.VALUES, (float) rotPos.getY(), (float) rotPos.getX(), true);
                     if (target instanceof ServerPlayerEntity targetPlayerEntity) {
                         Logger.logSuccess(attacker, "You shot " + targetPlayerEntity.getNameForScoreboard() + ".");
                         Logger.logFailure(targetPlayerEntity, "You were shot by " + attacker.getNameForScoreboard() + ".");
-                        targetPlayerEntity.playSound(SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1f, 1f);
+                        targetPlayerEntity.playSoundToPlayer(SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1f, 1f);
                     }
                 }
             }

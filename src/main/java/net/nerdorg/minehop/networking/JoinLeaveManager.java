@@ -3,6 +3,7 @@ package net.nerdorg.minehop.networking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
@@ -56,8 +57,10 @@ public class JoinLeaveManager {
                                 mapData.x,
                                 mapData.y,
                                 mapData.z,
+                                PositionFlag.VALUES,
                                 (float) mapData.yrot,
-                                (float) mapData.xrot
+                                (float) mapData.xrot,
+                                true
                         );
                     }
                 }

@@ -6,6 +6,8 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 @Config(name = "minehop")
 public class MinehopConfig implements ConfigData {
+    public static boolean enabled = true;
+    public boolean fall_damage = true;
     public boolean nulls = true;
     @ConfigEntry.Gui.CollapsibleObject
     public JHud jHud = new JHud();

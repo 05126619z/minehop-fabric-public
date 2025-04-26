@@ -3,6 +3,8 @@ package net.nerdorg.minehop.mixin.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.AttackIndicator;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -27,12 +29,6 @@ import net.minecraft.client.gui.DrawContext;
 public abstract class InGameHudMixin {
     @Shadow @Nullable protected abstract PlayerEntity getCameraPlayer();
 
-    @Shadow private int scaledHeight;
-
-    @Shadow private int scaledWidth;
-
-    @Shadow protected abstract void renderHotbarItem(DrawContext context, int x, int y, float tickDelta, PlayerEntity player, ItemStack stack, int seed);
-
     @Shadow @Final private MinecraftClient client;
 
     @Shadow @Final private static Identifier HOTBAR_TEXTURE;
@@ -47,8 +43,11 @@ public abstract class InGameHudMixin {
 
     @Shadow @Final private static Identifier HOTBAR_ATTACK_INDICATOR_PROGRESS_TEXTURE;
 
-    @Inject(at = @At("TAIL"), method = "render(Lnet/minecraft/client/gui/DrawContext;F)V")
-    private void renderSqueedometerHud(DrawContext context, float tickDelta, CallbackInfo info) {
+    @Inject(method = "renderHotbarItem", at = @At("HEAD"), cancellable = true)
+    private void renderHotbarItem(DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed, CallbackInfo ci) {}
+
+    @Inject(at = @At("TAIL"), method = "render")
+    private void renderSqueedometerHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo info) {
         MinehopConfig config;
         if (Minehop.override_config) {
             config = new MinehopConfig();
@@ -70,11 +69,11 @@ public abstract class InGameHudMixin {
         }
 
         if (config.jHud.speedHud.show_current_speed) {
-            MinehopClient.squeedometerHud.drawMain(context, tickDelta, config);
+            MinehopClient.squeedometerHud.drawMain(context, tickCounter.getTickDelta(true), config);
         }
         MinehopClient.squeedometerHud.drawJHUD(context, config);
         if (MinehopClient.spectatorList.size() > 0) {
-            MinehopClient.squeedometerHud.drawSpectators(context, tickDelta);
+            MinehopClient.squeedometerHud.drawSpectators(context, tickCounter.getTickDelta(true));
         }
 
     }
@@ -103,22 +102,22 @@ public abstract class InGameHudMixin {
 
 
     @Inject(at = @At("HEAD"), method = "renderHotbar", cancellable = true)
-    private void renderHotbar(float tickDelta, DrawContext context, CallbackInfo ci) {
+    private void renderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (!MinehopClient.hideSelf) {
             PlayerEntity playerEntity = this.getCameraPlayer();
             if (playerEntity != null) {
                 ItemStack itemStack = playerEntity.getOffHandStack();
                 Arm arm = playerEntity.getMainArm().getOpposite();
-                int i = this.scaledWidth / 2;
+                int i = context.getScaledWindowWidth() / 2;
                 context.getMatrices().push();
                 context.getMatrices().translate(0.0F, 0.0F, -90.0F);
-                context.drawGuiTexture(HOTBAR_TEXTURE, i - 91, this.scaledHeight - 22, 182, 22);
-                context.drawGuiTexture(HOTBAR_SELECTION_TEXTURE, i - 91 - 1 + playerEntity.getInventory().selectedSlot * 20, this.scaledHeight - 22 - 1, 24, 23);
+                context.drawGuiTexture(RenderLayer::getGuiTextured, HOTBAR_TEXTURE, i - 91, context.getScaledWindowHeight() - 22, 182, 22);
+                context.drawGuiTexture(RenderLayer::getGuiTextured,HOTBAR_SELECTION_TEXTURE, i - 91 - 1 + playerEntity.getInventory().selectedSlot * 20, context.getScaledWindowHeight() - 22 - 1, 24, 23);
                 if (!itemStack.isEmpty()) {
                     if (arm == Arm.LEFT) {
-                        context.drawGuiTexture(HOTBAR_OFFHAND_LEFT_TEXTURE, i - 91 - 29, this.scaledHeight - 23, 29, 24);
+                        context.drawGuiTexture(RenderLayer::getGuiTextured,HOTBAR_OFFHAND_LEFT_TEXTURE, i - 91 - 29, context.getScaledWindowHeight() - 23, 29, 24);
                     } else {
-                        context.drawGuiTexture(HOTBAR_OFFHAND_RIGHT_TEXTURE, i + 91, this.scaledHeight - 23, 29, 24);
+                        context.drawGuiTexture(RenderLayer::getGuiTextured,HOTBAR_OFFHAND_RIGHT_TEXTURE, i + 91, context.getScaledWindowHeight() - 23, 29, 24);
                     }
                 }
 
@@ -130,16 +129,16 @@ public abstract class InGameHudMixin {
                 int o;
                 for(m = 0; m < 9; ++m) {
                     n = i - 90 + m * 20 + 2;
-                    o = this.scaledHeight - 16 - 3;
-                    this.renderHotbarItem(context, n, o, tickDelta, playerEntity, (ItemStack)playerEntity.getInventory().main.get(m), l++);
+                    o = context.getScaledWindowHeight() - 16 - 3;
+                    this.renderHotbarItem(context, n, o, tickCounter, playerEntity, (ItemStack)playerEntity.getInventory().main.get(m), l++, ci);
                 }
 
                 if (!itemStack.isEmpty()) {
-                    m = this.scaledHeight - 16 - 3;
+                    m = context.getScaledWindowHeight() - 16 - 3;
                     if (arm == Arm.LEFT) {
-                        this.renderHotbarItem(context, i - 91 - 26, m, tickDelta, playerEntity, itemStack, l++);
+                        this.renderHotbarItem(context, i - 91 - 26, m, tickCounter, playerEntity, itemStack, l++, ci);
                     } else {
-                        this.renderHotbarItem(context, i + 91 + 10, m, tickDelta, playerEntity, itemStack, l++);
+                        this.renderHotbarItem(context, i + 91 + 10, m, tickCounter, playerEntity, itemStack, l++, ci);
                     }
                 }
 
@@ -147,15 +146,15 @@ public abstract class InGameHudMixin {
                 if (this.client.options.getAttackIndicator().getValue() == AttackIndicator.HOTBAR) {
                     float f = this.client.player.getAttackCooldownProgress(0.0F);
                     if (f < 1.0F) {
-                        n = this.scaledHeight - 20;
+                        n = context.getScaledWindowHeight() - 20;
                         o = i + 91 + 6;
                         if (arm == Arm.RIGHT) {
                             o = i - 91 - 22;
                         }
 
                         int p = (int)(f * 19.0F);
-                        context.drawGuiTexture(HOTBAR_ATTACK_INDICATOR_BACKGROUND_TEXTURE, o, n, 18, 18);
-                        context.drawGuiTexture(HOTBAR_ATTACK_INDICATOR_PROGRESS_TEXTURE, 18, 18, 0, 18 - p, o, n + 18 - p, 18, p);
+                        context.drawGuiTexture(RenderLayer::getGuiTextured, HOTBAR_ATTACK_INDICATOR_BACKGROUND_TEXTURE, o, n, 18, 18);
+                        context.drawGuiTexture(RenderLayer::getGuiTextured, HOTBAR_ATTACK_INDICATOR_PROGRESS_TEXTURE, 18, 18, 0, 18 - p, o, n + 18 - p, 18, p);
                     }
                 }
 

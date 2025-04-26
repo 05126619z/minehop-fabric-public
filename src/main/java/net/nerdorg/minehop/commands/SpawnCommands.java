@@ -10,6 +10,7 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -60,8 +61,10 @@ public class SpawnCommands {
                         pairedMap.x,
                         pairedMap.y,
                         pairedMap.z,
+                        PositionFlag.VALUES,
                         (float) pairedMap.yrot,
-                        (float) pairedMap.xrot
+                        (float) pairedMap.xrot,
+                        true
                 );
                 Minehop.timerManager.remove(serverPlayerEntity.getNameForScoreboard());
                 Logger.logSuccess(serverPlayerEntity, "Teleporting to spawn.");
@@ -72,7 +75,7 @@ public class SpawnCommands {
                         if (!spectatorPlayer.isCreative()) {
                             spectatorPlayer.getInventory().clear();
                         }
-                        spectatorPlayer.teleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
+                        spectatorPlayer.teleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ(), true);
                         spectatorPlayer.setCameraEntity(serverPlayerEntity);
                     }
                 }

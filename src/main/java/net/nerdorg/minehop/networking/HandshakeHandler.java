@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -44,7 +46,9 @@ public class HandshakeHandler {
     }
 
     private static void registerReceivers() {
-        ServerPlayNetworking.registerGlobalReceiver(ModMessages.HANDSHAKE_ID, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.HANDSHAKE_ID), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
+            ServerPlayerEntity player = ctx.player();
             int mod_version = buf.readInt();
             if (mod_version == Minehop.MOD_VERSION) {
                 System.out.println("Validated " + player.getNameForScoreboard());

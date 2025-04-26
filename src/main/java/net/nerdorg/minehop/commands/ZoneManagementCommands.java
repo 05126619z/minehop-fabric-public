@@ -125,7 +125,7 @@ public class ZoneManagementCommands {
             }
         }
         if (closestEntity != null) {
-            closestEntity.kill();
+            closestEntity.kill(serverWorld);
             Logger.logSuccess(serverPlayerEntity, "Killed nearest zone entity.");
         }
         else {

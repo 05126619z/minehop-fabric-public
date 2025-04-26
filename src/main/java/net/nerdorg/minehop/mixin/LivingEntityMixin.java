@@ -2,37 +2,36 @@
 
 package net.nerdorg.minehop.mixin;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.HorizontalFacingBlock;
-import net.minecraft.block.StairsBlock;
+import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.DamageTypeTags;
+import net.minecraft.registry.tag.EntityTypeTags;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.stat.Stats;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.nerdorg.minehop.Minehop;
-import net.nerdorg.minehop.block.ModBlocks;
-import net.nerdorg.minehop.block.entity.BoostBlockEntity;
-import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.config.ConfigWrapper;
-import net.nerdorg.minehop.data.DataManager;
-import net.nerdorg.minehop.hns.HNSManager;
-import net.nerdorg.minehop.util.Logger;
+import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.util.MovementUtil;
-import net.nerdorg.minehop.util.ZoneUtil;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -49,10 +48,10 @@ public abstract class LivingEntityMixin extends Entity {
     @Shadow private int jumpingCooldown;
     @Shadow protected boolean jumping;
 
+    @Shadow protected abstract Vec3d applyClimbingSpeed(Vec3d velocity);
     @Shadow protected abstract float getJumpVelocity();
-    @Shadow public abstract boolean hasStatusEffect(StatusEffect effect);
-    @Shadow public abstract StatusEffectInstance getStatusEffect(StatusEffect effect);
-    @Shadow public abstract boolean isFallFlying();
+    @Shadow public abstract boolean hasStatusEffect(RegistryEntry<StatusEffect> effect);
+    @Shadow public abstract StatusEffectInstance getStatusEffect(RegistryEntry<StatusEffect> effect);
     @Shadow public abstract boolean isClimbing();
 
     @Shadow public abstract float getYaw(float tickDelta);
@@ -63,91 +62,230 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Shadow public abstract float getHeadYaw();
 
-    @Shadow public int stuckArrowTimer;
+    @Shadow public abstract boolean isDead();
 
-    @Shadow public abstract boolean isHoldingOntoLadder();
+    @Shadow public abstract boolean isSleeping();
+    @Shadow public abstract boolean isGliding();
+    @Shadow public abstract void wakeUp();
 
-    @Shadow protected float field_6215;
+    @Shadow protected int despawnCounter;
 
-    @Shadow protected abstract boolean shouldSwimInFluids();
+    @Shadow public abstract boolean blockedByShield(DamageSource source);
 
-    @Shadow @Final public static int field_30063;
+    @Shadow public abstract void damageShield(float amount);
+
+    @Shadow protected abstract void takeShieldHit(LivingEntity attacker);
+
+    @Shadow @Final public LimbAnimator limbAnimator;
+    @Shadow protected float lastDamageTaken;
+
+    @Shadow protected abstract void applyDamage(ServerWorld world, DamageSource source, float amount);
+
+    @Shadow public int maxHurtTime;
+    @Shadow public int hurtTime;
+
+    @Shadow public abstract ItemStack getEquippedStack(EquipmentSlot slot);
+
+    @Shadow public abstract void damageHelmet(DamageSource source, float amount);
+
+    @Shadow public abstract void setAttacker(@Nullable LivingEntity attacker);
+
+    @Shadow protected int playerHitTimer;
+    @Shadow @Nullable protected PlayerEntity attackingPlayer;
+
+    @Shadow public abstract void takeKnockback(double strength, double x, double z);
+
+    @Shadow public abstract void tiltScreen(double deltaX, double deltaZ);
+
+    @Shadow protected abstract boolean tryUseDeathProtector(DamageSource source);
+
+    @Shadow @Nullable protected abstract SoundEvent getDeathSound();
+
+    @Shadow protected abstract float getSoundVolume();
+
+    @Shadow public abstract float getSoundPitch();
+
+    @Shadow public abstract void onDeath(DamageSource damageSource);
+
+    @Shadow protected abstract void playHurtSound(DamageSource source);
+
+    @Shadow public abstract boolean isInvulnerableTo(ServerWorld world, DamageSource source);
+    @Shadow @Nullable private DamageSource lastDamageSource;
+    @Shadow private long lastDamageTime;
     private boolean wasOnGround;
-    private long boostTime = 0;
-    private long ladderReleaseTime = 0;
 
     public LivingEntityMixin(EntityType<?> type, World world) {
         super(type, world);
     }
 
-    @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
-    public void isPushable(CallbackInfoReturnable<Boolean> cir) {
-        if (!Minehop.o_hns) {
-            cir.setReturnValue(false);
-        }
-    }
-
-    @Inject(method = "teleport", at = @At("HEAD"))
-    public void onTeleport(double x, double y, double z, boolean particleEffects, CallbackInfoReturnable<Boolean> cir) {
-        HNSManager.taggedMap.remove(this.getNameForScoreboard());
-    }
-
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    public void onDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (source.isOf(DamageTypes.FALL)) {
-            if (this.getWorld().getEntityById(this.getId()) instanceof PlayerEntity player) {
-                DataManager.MapData mapData = ZoneUtil.getCurrentMap(player);
-                if (mapData != null && mapData.hns) {
-                    BlockState belowState = this.getWorld().getBlockState(this.getBlockPos().offset(Direction.DOWN, 1));
-                    if (amount >= 20 && !(belowState.getBlock() instanceof StairsBlock)) {
-                        HNSManager.taggedMap.put(player.getNameForScoreboard(), true);
-                        Logger.logFailure(player, "You were tagged because you fell too far. You can break your fall by landing on stairs.");
-                    }
-                }
-            }
+    public void onDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        MinehopConfig config = ConfigWrapper.config;
+
+        if (source.isOf(DamageTypes.FALL) && !config.fall_damage) {
             cir.cancel();
         }
         else {
-            Entity sourceEntity = source.getSource();
-            if (sourceEntity != null) {
-                DataManager.MapData mapData = ZoneUtil.getCurrentMap(sourceEntity);
+            if (this.isInvulnerableTo(world, source)) {
+                cir.setReturnValue(false);
+            } else if (this.getWorld().isClient) {
+                cir.setReturnValue(false);
+            } else if (this.isDead()) {
+                cir.setReturnValue(false);
+            } else if (source.isIn(DamageTypeTags.IS_FIRE) && this.hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) {
+                cir.setReturnValue(false);
+            } else {
+                if (this.isSleeping() && !this.getWorld().isClient) {
+                    this.wakeUp();
+                }
 
-                if (mapData != null && mapData.hns) {
-                    if (sourceEntity instanceof PlayerEntity player) {
-                        if (player.getEyePos().distanceTo(this.getEyePos()) > 3.5 && player.getEyePos().distanceTo(this.getPos()) > 3.5) {
-                            cir.cancel();
+                this.despawnCounter = 0;
+                float f = amount;
+                boolean bl = false;
+                float g = 0.0F;
+                if (amount > 0.0F && this.blockedByShield(source)) {
+                    this.damageShield(amount);
+                    g = amount;
+                    amount = 0.0F;
+                    if (!source.isIn(DamageTypeTags.IS_PROJECTILE)) {
+                        Entity entity = source.getSource();
+                        if (entity instanceof LivingEntity livingEntity) {
+                            this.takeShieldHit(livingEntity);
                         }
-                        if (player.getEyePos().getY() <= this.getPos().getY() - 1) {
-                            cir.cancel();
+                    }
+
+                    bl = true;
+                }
+
+                if (source.isIn(DamageTypeTags.IS_FREEZING) && this.getType().isIn(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES)) {
+                    amount *= 5.0F;
+                }
+
+                this.limbAnimator.setSpeed(1.5F);
+                boolean bl2 = true;
+                if ((float) this.timeUntilRegen > 10.0F && !source.isIn(DamageTypeTags.BYPASSES_COOLDOWN)) {
+                    if (amount <= this.lastDamageTaken) {
+                        cir.setReturnValue(false);
+                    }
+
+                    this.applyDamage(world, source, amount - this.lastDamageTaken);
+                    this.lastDamageTaken = amount;
+                    bl2 = false;
+                } else {
+                    this.lastDamageTaken = amount;
+                    this.timeUntilRegen = 20;
+                    this.applyDamage(world, source, amount);
+                    this.maxHurtTime = 10;
+                    this.hurtTime = this.maxHurtTime;
+                }
+
+                if (source.isIn(DamageTypeTags.DAMAGES_HELMET) && !this.getEquippedStack(EquipmentSlot.HEAD).isEmpty()) {
+                    this.damageHelmet(source, amount);
+                    amount *= 0.75F;
+                }
+
+                Entity entity2 = source.getAttacker();
+                if (entity2 != null) {
+                    if (entity2 instanceof LivingEntity livingEntity2) {
+                        if (!source.isIn(DamageTypeTags.NO_ANGER)) {
+                            this.setAttacker(livingEntity2);
+                        }
+                    }
+
+                    if (entity2 instanceof PlayerEntity playerEntity) {
+                        this.playerHitTimer = 100;
+                        this.attackingPlayer = playerEntity;
+                    } else if (entity2 instanceof WolfEntity wolfEntity) {
+                        if (wolfEntity.isTamed()) {
+                            this.playerHitTimer = 100;
+                            LivingEntity var11 = wolfEntity.getOwner();
+                            if (var11 instanceof PlayerEntity) {
+                                this.attackingPlayer = (PlayerEntity) var11;
+                            } else {
+                                this.attackingPlayer = null;
+                            }
                         }
                     }
                 }
+
+                if (bl2) {
+                    if (bl) {
+                        this.getWorld().sendEntityStatus(this, (byte) 29);
+                    } else {
+                        this.getWorld().sendEntityDamage(this, source);
+                    }
+
+                    if (!source.isIn(DamageTypeTags.NO_IMPACT) && (!bl || amount > 0.0F)) {
+                        if (!source.isOf(DamageTypes.FALL)) {
+                            this.scheduleVelocityUpdate();
+                        }
+                    }
+
+                    if (entity2 != null && !source.isIn(DamageTypeTags.IS_EXPLOSION)) {
+                        double d = entity2.getX() - this.getX();
+
+                        double e;
+                        for (e = entity2.getZ() - this.getZ(); d * d + e * e < 1.0E-4; e = (Math.random() - Math.random()) * 0.01) {
+                            d = (Math.random() - Math.random()) * 0.01;
+                        }
+
+                        this.takeKnockback(0.4000000059604645, d, e);
+                        if (!bl) {
+                            this.tiltScreen(d, e);
+                        }
+                    }
+                }
+
+                if (this.isDead()) {
+                    if (!this.tryUseDeathProtector(source)) {
+                        SoundEvent soundEvent = this.getDeathSound();
+                        if (bl2 && soundEvent != null) {
+                            this.playSound(soundEvent, this.getSoundVolume(), this.getSoundPitch());
+                        }
+
+                        this.onDeath(source);
+                    }
+                } else if (bl2) {
+                    this.playHurtSound(source);
+                }
+
+                boolean bl3 = !bl || amount > 0.0F;
+                if (bl3) {
+                    this.lastDamageSource = source;
+                    this.lastDamageTime = this.getWorld().getTime();
+                }
+
+                LivingEntity self = (LivingEntity) this.getWorld().getEntityById(this.getId());
+
+                if (self instanceof ServerPlayerEntity) {
+                    Criteria.ENTITY_HURT_PLAYER.trigger((ServerPlayerEntity) self, source, f, amount, bl);
+                    if (g > 0.0F && g < 3.4028235E37F) {
+                        ((ServerPlayerEntity) self).increaseStat(Stats.DAMAGE_BLOCKED_BY_SHIELD, Math.round(g * 10.0F));
+                    }
+                }
+
+                if (entity2 instanceof ServerPlayerEntity) {
+                    Criteria.PLAYER_HURT_ENTITY.trigger((ServerPlayerEntity) entity2, this, source, f, amount, bl);
+                }
+
+                cir.setReturnValue(bl3);
             }
         }
+
+        cir.cancel();
     }
 
     /**
      * @Author lolrow and Plaaasma
-     * @Reason Improved quick turning and added gauge/efficiency calculation. I don't think any of lolrows code is here anymore but he's cool so he can stay.
+     * @Reason Fixed movement made it better and fucking awesome.
      */
 
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     public void travel(Vec3d movementInput, CallbackInfo ci) {
-        MinehopConfig config;
-        double speedCap = 1000000;
-        if (Minehop.override_config && Minehop.receivedConfig) {
-            config = new MinehopConfig();
-            config.movement.sv_friction = Minehop.o_sv_friction;
-            config.movement.sv_accelerate = Minehop.o_sv_accelerate;
-            config.movement.sv_airaccelerate = Minehop.o_sv_airaccelerate;
-            config.movement.sv_maxairspeed = Minehop.o_sv_maxairspeed;
-            config.movement.speed_mul = Minehop.o_speed_mul;
-            config.movement.sv_gravity = Minehop.o_sv_gravity;
-            speedCap = Minehop.o_speed_cap;
-        }
-        else {
-            config = ConfigWrapper.config;
-        }
+        MinehopConfig config = ConfigWrapper.config;
+
+        //Disable if it's disabled lol
+        if (!config.enabled) { return; }
 
         //Enable for Players only
         if (this.getType() != EntityType.PLAYER) { return; }
@@ -155,13 +293,13 @@ public abstract class LivingEntityMixin extends Entity {
         if (!this.canMoveVoluntarily() && !this.isLogicalSideForUpdatingMovement()) { return; }
 
         //Cancel override if not in plain walking state.
-        if (this.isTouchingWater() || this.isInLava() || this.isFallFlying()) { return; }
+        if (this.isTouchingWater() || this.isInLava() || this.isGliding()) { return; }
 
         //I don't have a better clue how to do this atm.
         LivingEntity self = (LivingEntity) this.getWorld().getEntityById(this.getId());
 
         //Disable on creative flying.
-        if (this.getType() == EntityType.PLAYER && isFlying((PlayerEntity) self)) { return; }
+        if (this.getType() == EntityType.PLAYER && MovementUtil.isFlying((PlayerEntity) self)) { return; }
 
         //Reverse multiplication done by the function that calls this one.
         this.sidewaysSpeed /= 0.98F;
@@ -181,14 +319,6 @@ public abstract class LivingEntityMixin extends Entity {
         //Apply Friction
         //
         boolean fullGrounded = this.wasOnGround && this.isOnGround(); //Allows for no friction 1-frame upon landing.
-        if (fullGrounded) {
-            if (!Minehop.groundedList.contains(this.getNameForScoreboard())) {
-                Minehop.groundedList.add(this.getNameForScoreboard());
-            }
-        }
-        else {
-            Minehop.groundedList.remove(this.getNameForScoreboard());
-        }
         if (fullGrounded) {
             Vec3d velFin = this.getVelocity();
             Vec3d horFin = new Vec3d(velFin.x,0.0F,velFin.z);
@@ -224,9 +354,6 @@ public abstract class LivingEntityMixin extends Entity {
 
         double perfectAngle = findOptimalStrafeAngle(sI, fI, config, fullGrounded);
 
-        // AUTOSTRAFER FOR TESTING PURPOSES, PROBABLY GOING TO ADD IT AS A GAMEMODE CAUSE IT'S REALLY FUN
-//        this.setYaw((float) perfectAngle);
-
         if (this.isOnGround()) {
             if (Minehop.efficiencyListMap.containsKey(this.getNameForScoreboard())) {
                 List<Double> efficiencyList = Minehop.efficiencyListMap.get(this.getNameForScoreboard());
@@ -249,15 +376,14 @@ public abstract class LivingEntityMixin extends Entity {
             double accelVel = (this.isOnGround() ? config.movement.sv_accelerate : (config.movement.sv_airaccelerate));
 
             float maxVel;
-            double angleBetween = 0;
             if (fullGrounded) {
                 maxVel = (float) (this.movementSpeed * config.movement.speed_mul);
             } else {
                 maxVel = (float) (config.movement.sv_maxairspeed);
 
-                angleBetween = Math.acos(accelVec.normalize().dotProduct(moveDir.normalize()));
+                double angleBetween = Math.acos(accelVec.normalize().dotProduct(moveDir.normalize()));
 
-                maxVel *= (float) (angleBetween * angleBetween * angleBetween);
+                maxVel *= (angleBetween * angleBetween * angleBetween);
             }
 
             if (projVel + accelVel > maxVel) {
@@ -266,16 +392,8 @@ public abstract class LivingEntityMixin extends Entity {
             Vec3d accelDir = moveDir.multiply(Math.max(accelVel, 0.0F));
 
             Vec3d newVelocity = accelVec.add(accelDir);
-            Vec3d newHorizontalVelocity = newVelocity;
 
-            double currentHorizontalSpeed = newHorizontalVelocity.horizontalLength();
-
-            if (currentHorizontalSpeed > speedCap && !fullGrounded) {
-                // Scale down the horizontal velocity to the speedCap
-                newHorizontalVelocity = newHorizontalVelocity.multiply(speedCap / currentHorizontalSpeed);
-            }
-
-            if (!fullGrounded) {
+            if (!this.isOnGround()) {
                 double v = Math.sqrt((newVelocity.x * newVelocity.x) + (newVelocity.z * newVelocity.z));
                 double nogainv2 = (accelVec.x * accelVec.x) + (accelVec.z * accelVec.z);
                 double nogainv = Math.sqrt(nogainv2);
@@ -291,68 +409,23 @@ public abstract class LivingEntityMixin extends Entity {
                 Minehop.gaugeListMap.put(this.getNameForScoreboard(), gaugeList);
 
                 double strafeEfficiency = MathHelper.clamp((((v - nogainv) / (maxgainv - nogainv)) * 100), 0D, 100D);
-                Minehop.efficiencyMap.put(this.getNameForScoreboard(), strafeEfficiency);
                 List<Double> efficiencyList = Minehop.efficiencyListMap.containsKey(this.getNameForScoreboard()) ? Minehop.efficiencyListMap.get(this.getNameForScoreboard()) : new ArrayList<>();
                 efficiencyList.add(strafeEfficiency);
                 Minehop.efficiencyListMap.put(this.getNameForScoreboard(), efficiencyList);
             }
 
-            this.setVelocity(new Vec3d(newHorizontalVelocity.getX(), newVelocity.getY(), newHorizontalVelocity.getZ()));
+            this.setVelocity(newVelocity);
         }
 
-        double ladderYaw = 0;
-        BlockState blockState = this.getBlockStateAtPos();
-        if (blockState.isIn(BlockTags.CLIMBABLE)) {
-            if (blockState.isOf(Blocks.LADDER)) {
-                ladderYaw = normalizeAngle(blockState.get(HorizontalFacingBlock.FACING).asRotation() + 180);
-            }
-        }
-
-        this.setVelocity(applyClimbingSpeed(this.getVelocity(), fI, sI, ladderYaw));
+        this.setVelocity(this.applyClimbingSpeed(this.getVelocity()));
         this.move(MovementType.SELF, this.getVelocity());
 
         //u8
         //Ladder Logic
         //
         Vec3d preVel = this.getVelocity();
-        if (this.isClimbing()) {
-            if (jumping) {
-                if (this.getWorld().getTime() < ladderReleaseTime || this.getWorld().getTime() > ladderReleaseTime + 4) {
-                    Vec3d jumpDir = MovementUtil.movementInputToVelocity(new Vec3d(0.0F, 0.0F, -1.0F), 1.0F, (float) ladderYaw);
-
-                    Vec3d accelDir = jumpDir.multiply(0.25);
-
-                    preVel = preVel.add(accelDir);
-
-                    ladderReleaseTime = this.getWorld().getTime();
-                }
-            }
-            else {
-                double ladderfI;
-                double entityYaw = normalizeAngle(this.getYaw());
-                double yawDif = normalizeAngle(entityYaw - ladderYaw);
-                if (yawDif < -45 && yawDif > -135) {
-                    ladderfI = -sI;
-                }
-                else if (yawDif < -135 || yawDif > 135) {
-                    ladderfI = -fI;
-                }
-                else if (yawDif < 135 && yawDif > 45) {
-                    ladderfI = sI;
-                }
-                else {
-                    ladderfI = fI;
-                }
-
-                if (ladderfI > 0.4) {
-                    ladderfI = 0.4;
-                }
-                else if (ladderfI < -0.35) {
-                    ladderfI = -0.35;
-                }
-
-                preVel = new Vec3d(preVel.x * 0.7F, ladderfI, preVel.z * 0.7F);
-            }
+        if ((this.horizontalCollision || this.jumping) && this.isClimbing()) {
+            preVel = new Vec3d(preVel.x * 0.7D, 0.2D, preVel.z * 0.7D);
         }
 
         //
@@ -364,24 +437,16 @@ public abstract class LivingEntityMixin extends Entity {
             gravity = 0.01D;
             this.fallDistance = 0.0F;
         }
+        ChunkPos currentChunk = this.getChunkPos();
         if (this.hasStatusEffect(StatusEffects.LEVITATION)) {
             yVel += (0.05D * (this.getStatusEffect(StatusEffects.LEVITATION).getAmplifier() + 1) - preVel.y) * 0.2D;
             this.fallDistance = 0.0F;
-        } else if (this.getWorld().isClient && !this.getWorld().isChunkLoaded(blockPos)) {
+        } else if (this.getWorld().isClient && !this.getWorld().isChunkLoaded(currentChunk.x,currentChunk.z)) {
             yVel = 0.0D;
         } else if (!this.hasNoGravity()) {
             yVel -= gravity;
         }
 
-        BlockState belowState = this.getWorld().getBlockState(this.getBlockPos());
-        if (belowState.isOf(ModBlocks.BOOSTER_BLOCK) && (this.getWorld().getTime() > this.boostTime + 5 || this.getWorld().getTime() < this.boostTime)) {
-            this.boostTime = this.getWorld().getTime();
-            BoostBlockEntity boostBlockEntity = (BoostBlockEntity) this.getWorld().getBlockEntity(this.getBlockPos());
-            if (boostBlockEntity != null) {
-                preVel = preVel.add(boostBlockEntity.getXPower(), 0, boostBlockEntity.getZPower());
-                yVel += boostBlockEntity.getYPower();
-            }
-        }
         this.setVelocity(preVel.x,yVel,preVel.z);
 
         //
@@ -436,51 +501,13 @@ public abstract class LivingEntityMixin extends Entity {
         return angle;
     }
 
-    @Unique
-    private Vec3d applyClimbingSpeed(Vec3d motion, double fI, double sI, double ladderYaw) {
-        if (this.isClimbing() && !this.jumping) {
-            this.onLanding();
-            double d = 0;
-            if (!(ladderYaw == 90 || ladderYaw == -90)) {
-                 d = MathHelper.clamp(motion.x, -0.35000000596046448, 0.35000000596046448);
-            }
-            double e = 0;
-            if (!(ladderYaw == 180 || ladderYaw == -180 || ladderYaw == 0)) {
-                e = MathHelper.clamp(motion.z, -0.35000000596046448, 0.35000000596046448);
-            }
-            double g = motion.y;
-            if (g < 0.0 && this.getWorld().getEntityById(this.getId()) instanceof PlayerEntity && fI == 0 && sI == 0) {
-                g = 0.0;
-            }
-
-            motion = new Vec3d(d, g, e);
-        }
-        else if (this.isClimbing() && this.jumping) {
-            this.onLanding();
-            double d = motion.x;
-            if (ladderYaw == 90) {
-                d = MathHelper.clamp(motion.x, 0, 1000000);
-            }
-            else if (ladderYaw == -90) {
-                d = MathHelper.clamp(motion.x, -1000000, 0);
-            }
-            double e = motion.z;
-            if (ladderYaw == 180 || ladderYaw == -180) {
-                e = MathHelper.clamp(motion.z, 0, 1000000);
-            }
-            else if (ladderYaw == 0) {
-                e = MathHelper.clamp(motion.z, -1000000, 0);
-            }
-            double g = motion.y;
-
-            motion = new Vec3d(d, g, e);
-        }
-
-        return motion;
-    }
-
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
     void jump(CallbackInfo ci) {
+        MinehopConfig config = ConfigWrapper.config;
+
+        //Disable if it's disabled lol
+        if (!config.enabled) { return; }
+
         Vec3d vecFin = this.getVelocity();
         double yVel = this.getJumpVelocity();
         if (this.hasStatusEffect(StatusEffects.JUMP_BOOST)) {
@@ -491,9 +518,5 @@ public abstract class LivingEntityMixin extends Entity {
         this.velocityDirty = true;
 
         ci.cancel();
-    }
-
-    private static boolean isFlying(PlayerEntity player) {
-        return player != null && player.getAbilities().flying;
     }
 }

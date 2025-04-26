@@ -53,6 +53,17 @@ public class TestCommands {
         server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, fakePlayer));
 
         context.getSource().getWorld().spawnEntity(fakePlayer);
-        server.getPlayerManager().sendToAll(new EntitySpawnS2CPacket(fakePlayer));
+        server.getPlayerManager().sendToAll(new EntitySpawnS2CPacket(
+                fakePlayer.getId(),
+                fakePlayer.getUuid(),
+                fakePlayer.getX(),
+                fakePlayer.getY(),
+                fakePlayer.getZ(),
+                fakePlayer.getPitch(),
+                fakePlayer.getYaw(),
+                fakePlayer.getType(),
+                0,
+                fakePlayer.getVelocity(),
+                fakePlayer.getHeadYaw()));
     }
 }

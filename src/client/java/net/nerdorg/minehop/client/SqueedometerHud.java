@@ -176,7 +176,7 @@ public class SqueedometerHud {
                         context.drawTextWithShadow(this.textRenderer, gauge_text, gauge_left, gauge_top, gaugeColor);
                     }
                     else {
-                        context.drawTextWrapped(this.textRenderer, StringVisitable.plain(gauge_text), gauge_left, gauge_top, this.textRenderer.getWidth("/\\"), gaugeColor);
+                        context.drawWrappedText(this.textRenderer, StringVisitable.plain(gauge_text), gauge_left, gauge_top, this.textRenderer.getWidth("/\\"), gaugeColor, false);
                     }
                 }
             }

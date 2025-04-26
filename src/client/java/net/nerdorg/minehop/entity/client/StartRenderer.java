@@ -18,7 +18,7 @@ import net.nerdorg.minehop.render.RenderUtil;
 import org.joml.Vector3f;
 
 public class StartRenderer extends MobEntityRenderer<StartEntity, StartModel> {
-    private static final Identifier TEXTURE = new Identifier(Minehop.MOD_ID, "textures/entity/zone.png");
+    private static final Identifier TEXTURE = Identifier.of(Minehop.MOD_ID, "textures/entity/zone.png");
 
     public StartRenderer(EntityRendererFactory.Context context) {
         super(context, new StartModel(context.getPart(ModModelLayers.START_ENTITY)), 0.001f);
@@ -58,6 +58,6 @@ public class StartRenderer extends MobEntityRenderer<StartEntity, StartModel> {
             Vec3d corner2Offset = new Vec3d(corner2.getX(), corner2.getY(), corner2.getZ()).subtract(startEntity.getPos());
             RenderUtil.drawCuboid(vertexConsumerProvider, matrixStack, new Vector3f((float) corner1Offset.getX(), (float) corner1Offset.getY(), (float) corner1Offset.getZ()), new Vector3f((float) corner2Offset.getX(), (float) corner2Offset.getY(), (float) corner2Offset.getZ()), 10, 255, 0, 255, 0);
         }
-        super.render(startEntity, f, g, matrixStack, vertexConsumerProvider, i);
+        super.render(startEntity, matrixStack, vertexConsumerProvider, i);
     }
 }

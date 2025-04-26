@@ -14,6 +14,7 @@ import net.minecraft.entity.damage.DamageSources;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -107,7 +108,7 @@ public class ResetEntity extends Zone {
 
     public static DefaultAttributeContainer.Builder createResetEntityAttributes() {
         return MobEntity.createMobAttributes()
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 1000000);
+                .add(EntityAttributes.MAX_HEALTH, 1000000);
     }
 
     @Override
@@ -120,7 +121,7 @@ public class ResetEntity extends Zone {
                     int avgY = (this.corner1.getY() + this.corner2.getY()) / 2;
                     int avgZ = (this.corner1.getZ() + this.corner2.getZ()) / 2;
 
-                    this.teleport(avgX, avgY, avgZ);
+                    this.teleport(avgX, avgY, avgZ, true);
                 }
                 for (ServerPlayerEntity worldPlayer : serverWorld.getPlayers()) {
                     PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.paired_map, this.check_index);
@@ -167,13 +168,13 @@ public class ResetEntity extends Zone {
                                 if (startZone != null){
                                     Minehop.playerMapLocation.put(player.getUuidAsString(), startZone);
                                 }
-                                player.teleport(serverWorld, targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), targetRot.y, targetRot.x);
+                                player.teleport(serverWorld, targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), PositionFlag.VALUES, targetRot.y, targetRot.x, true);
                             }
                         }
                     }
                 }
                 else {
-                    this.kill();
+                    this.kill(serverWorld);
                 }
             }
         }

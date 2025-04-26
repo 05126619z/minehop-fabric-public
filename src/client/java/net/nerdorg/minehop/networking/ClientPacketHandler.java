@@ -5,9 +5,12 @@ import com.mojang.util.UUIDTypeAdapter;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.nerdorg.minehop.Minehop;
@@ -34,7 +37,8 @@ public class ClientPacketHandler {
     }
 
     public static void registerReceivers() {
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.CONFIG_SYNC_ID, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.CONFIG_SYNC_ID), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             double o_sv_friction = buf.readDouble();
             double o_sv_accelerate = buf.readDouble();
             double o_sv_airaccelerate = buf.readDouble();
@@ -45,7 +49,7 @@ public class ClientPacketHandler {
             boolean o_hns = buf.readBoolean();
 
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 // Assign the read values to your variables or fields here
                 Minehop.o_sv_friction = o_sv_friction;
                 Minehop.o_sv_accelerate = o_sv_accelerate;
@@ -60,13 +64,15 @@ public class ClientPacketHandler {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.ZONE_SYNC_ID, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.ZONE_SYNC_ID), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             int entity_id = buf.readInt();
             BlockPos pos1 = buf.readBlockPos();
             BlockPos pos2 = buf.readBlockPos();
             String name = buf.readString();
             int check_index = buf.readInt();
-
+            
+            MinecraftClient client = ctx.client();
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
             client.execute(() -> {
                 // Assign the read values to your variables or fields here
@@ -90,30 +96,31 @@ public class ClientPacketHandler {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SELF_V_TOGGLE, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SELF_V_TOGGLE), (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 MinehopClient.hideSelf = !MinehopClient.hideSelf;
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.OTHER_V_TOGGLE, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.OTHER_V_TOGGLE), (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 MinehopClient.hideOthers = !MinehopClient.hideOthers;
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.REPLAY_V_TOGGLE, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.REPLAY_V_TOGGLE), (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 MinehopClient.hideReplay = !MinehopClient.hideReplay;
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SEND_SPECTATORS, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SEND_SPECTATORS), (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
-            client.execute(() -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
+            ctx.client().execute(() -> {
                 List<String> newSpectatorList = new ArrayList<>();
                 int stringCount = buf.readInt();
 
@@ -126,10 +133,12 @@ public class ClientPacketHandler {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SEND_EFFICIENCY, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SEND_EFFICIENCY), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
             double efficiency = buf.readDouble();
 
+            MinecraftClient client = ctx.client();
             client.execute(() -> {
                 if (efficiency != 0) {
                     MinehopClient.last_efficiency = efficiency;
@@ -148,30 +157,31 @@ public class ClientPacketHandler {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.CLIENT_SPEC_EFFICIENCY, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.CLIENT_SPEC_EFFICIENCY), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
             double last_jump_speed = buf.readDouble();
             int jump_count = buf.readInt();
             double last_efficiency = buf.readDouble();
 
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 MinehopClient.last_jump_speed = last_jump_speed;
                 MinehopClient.jump_count = jump_count;
                 MinehopClient.last_efficiency = last_efficiency;
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.OPEN_MAP_SCREEN, (client, handler, buf, responseSender) -> {
-
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.OPEN_MAP_SCREEN), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             String title = buf.readString();
-
+            MinecraftClient client = ctx.client();
             client.execute(() -> {
                 client.setScreen(new SelectMapScreen(Text.literal(title)));
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SEND_RECORDS, (client, handler, buf, responseSender) -> {
-
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SEND_RECORDS), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             List<DataManager.RecordData> newRecordList = new ArrayList<>();
             int recordCount = buf.readInt();
 
@@ -184,13 +194,13 @@ public class ClientPacketHandler {
                 }
             }
 
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 Minehop.recordList = newRecordList;
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SEND_MAPS, (client, handler, buf, responseSender) -> {
-
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SEND_MAPS), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             List<DataManager.MapData> newMapList = new ArrayList<>();
             int recordCount = buf.readInt();
 
@@ -209,14 +219,14 @@ public class ClientPacketHandler {
                 newMapList.add(new DataManager.MapData(name, x, y, z, xrot, yrot, worldKey, arena, hns, difficulty, player_count));
             }
 
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 Minehop.mapList = newMapList;
                 sortMapList(Minehop.mapList);
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SEND_PERSONAL_RECORDS, (client, handler, buf, responseSender) -> {
-
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SEND_PERSONAL_RECORDS), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             List<DataManager.RecordData> newRecordList = new ArrayList<>();
             int recordCount = buf.readInt();
 
@@ -229,20 +239,20 @@ public class ClientPacketHandler {
                 }
             }
 
-            client.execute(() -> {
+            ctx.client().execute(() -> {
                 Minehop.personalRecordList = newRecordList;
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.UPDATE_POWER, (client, handler, buf, responseSender) -> {
-
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.UPDATE_POWER), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             double power_x = buf.readDouble();
             double power_y = buf.readDouble();
             double power_z = buf.readDouble();
 
             BlockPos boosterPos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
-
-            // Ensure you are on the main thread when modifying the game or accessing client-side only classes
+            MinecraftClient client = ctx.client();
+            // Ensure you are on the main thread when modifying the game or accessing client side only classes
             client.execute(() -> {
                 // Assign the read values to your variables or fields here
                 new Thread(() -> {
@@ -256,8 +266,10 @@ public class ClientPacketHandler {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.ANTI_CHEAT_CHECK, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.ANTI_CHEAT_CHECK), (payload, ctx) -> {
             System.out.println("Anti Cheat Check");
+            MinecraftClient client = ctx.client();
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             client.execute(() -> {
                 new Thread(() -> {
 
@@ -270,27 +282,29 @@ public class ClientPacketHandler {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SET_PLAYER_CHEATER, (client, handler, buf, responseSender) -> {
-
+        ClientPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SET_PLAYER_CHEATER), (payload, ctx) -> {
+            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
+            MinecraftClient client = ctx.client();
+            ClientWorld world = ctx.client().world;
             client.execute(() -> {
                 new Thread(() -> {
 
                     String UUID = buf.readString();
                     boolean isCheater = buf.readBoolean();
 
-                    PlayerEntity cheater = handler.getWorld().getPlayerByUuid(java.util.UUID.fromString(UUID));
+                    PlayerEntity cheater = world.getPlayerByUuid(java.util.UUID.fromString(UUID));
 
                     if (isCheater) {
                         if (client.player.getUuidAsString().equals(UUID)) {
                                 client.getNetworkHandler().sendCommand("map restart");
                         }
                         CustomPlayerEntityRenderer.setPlayerModel(CustomPlayerEntityRenderer.PlayerModel.Cheater, UUID);
-                        Minehop.currentCheaters.add(handler.getWorld().getPlayerByUuid(java.util.UUID.fromString(UUID)));
+                        Minehop.currentCheaters.add(world.getPlayerByUuid(java.util.UUID.fromString(UUID)));
                     }
                     else {
                         CustomPlayerEntityRenderer.setPlayerModel(CustomPlayerEntityRenderer.PlayerModel.Player, UUID);
-                        while (Minehop.currentCheaters.contains(handler.getWorld().getPlayerByUuid(java.util.UUID.fromString(UUID)))) {
-                            Minehop.currentCheaters.remove(handler.getWorld().getPlayerByUuid(java.util.UUID.fromString(UUID)));
+                        while (Minehop.currentCheaters.contains(world.getPlayerByUuid(java.util.UUID.fromString(UUID)))) {
+                            Minehop.currentCheaters.remove(world.getPlayerByUuid(java.util.UUID.fromString(UUID)));
                         }
                     }
 
@@ -303,7 +317,7 @@ public class ClientPacketHandler {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         buf.writeInt(Minehop.MOD_VERSION);
 
-        ClientPlayNetworking.send(ModMessages.HANDSHAKE_ID, buf);
+        ClientPlayNetworking.send(new MyCustomPayload(ModMessages.HANDSHAKE_ID, buf));
     }
 
     public static void sendSpecEfficiency() {
@@ -313,7 +327,7 @@ public class ClientPacketHandler {
         buf.writeInt(MinehopClient.jump_count);
         buf.writeDouble(MinehopClient.last_efficiency);
 
-        ClientPlayNetworking.send(ModMessages.SERVER_SPEC_EFFICIENCY, buf);
+        ClientPlayNetworking.send(new MyCustomPayload(ModMessages.SERVER_SPEC_EFFICIENCY, buf));
     }
 
     public static void sendAntiCheatCheck(String checkResults) {
@@ -321,7 +335,7 @@ public class ClientPacketHandler {
         if (checkResults == null) {checkResults="";}
         buf.writeString(checkResults);
 
-        ClientPlayNetworking.send(ModMessages.ANTI_CHEAT_CHECK, buf);
+        ClientPlayNetworking.send(new MyCustomPayload(ModMessages.ANTI_CHEAT_CHECK, buf));
     }
 
     public static void sendEndMapEvent(float time) {
@@ -329,7 +343,7 @@ public class ClientPacketHandler {
 
         buf.writeFloat(time);
 
-        ClientPlayNetworking.send(ModMessages.MAP_FINISH, buf);
+        ClientPlayNetworking.send(new MyCustomPayload(ModMessages.MAP_FINISH, buf));
     }
 
     public static void sendCurrentTime(float time) {
@@ -338,7 +352,7 @@ public class ClientPacketHandler {
 
             buf.writeFloat(time);
 
-            ClientPlayNetworking.send(ModMessages.SEND_TIME, buf);
+            ClientPlayNetworking.send(new MyCustomPayload(ModMessages.SEND_TIME, buf));
             MinehopClient.lastSendTime = time;
         }
     }
