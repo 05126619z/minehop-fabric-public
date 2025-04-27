@@ -4,6 +4,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.util.Identifier;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.MinehopClient;
@@ -11,7 +12,7 @@ import net.nerdorg.minehop.MinehopClient;
 import java.util.HashMap;
 
 public class CustomPlayerEntityRenderer extends PlayerEntityRenderer {
-    private static final Identifier TEXTURE = new Identifier(Minehop.MOD_ID, "textures/entity/cheater_player_model_texture.png");
+    private static final Identifier TEXTURE = Identifier.of(Minehop.MOD_ID, "textures/entity/cheater_player_model_texture.png");
     private static final HashMap<String, PlayerModel> PlayerModels = new HashMap<>();
 
     public enum PlayerModel {
@@ -25,22 +26,22 @@ public class CustomPlayerEntityRenderer extends PlayerEntityRenderer {
     }
 
     @Override
-    public Identifier getTexture(AbstractClientPlayerEntity entity) {
+    public Identifier getTexture(PlayerEntityRenderState entity) {
 
-        PlayerModel model = PlayerModels.putIfAbsent(entity.getUuidAsString(), PlayerModel.Player);
-        model = PlayerModels.get(entity.getUuidAsString());
+        PlayerModels.putIfAbsent(entity.name, PlayerModel.Player);
+        PlayerModel model = PlayerModels.get(entity.name);
 
         switch (model){
 
             case Player -> {
-                return entity.getSkinTextures().texture();
+                return entity.skinTextures.texture();
             }
             case Cheater -> {
                 return TEXTURE;
             }
         }
 
-        return entity.getSkinTextures().texture();
+        return entity.skinTextures.texture();
     }
 
     public static void setPlayerModel(PlayerModel playerModel, String UUID) {

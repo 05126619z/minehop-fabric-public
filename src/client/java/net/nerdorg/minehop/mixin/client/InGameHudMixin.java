@@ -44,7 +44,25 @@ public abstract class InGameHudMixin {
     @Shadow @Final private static Identifier HOTBAR_ATTACK_INDICATOR_PROGRESS_TEXTURE;
 
     @Inject(method = "renderHotbarItem", at = @At("HEAD"), cancellable = true)
-    private void renderHotbarItem(DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed, CallbackInfo ci) {}
+    private void renderHotbarItem(DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed, CallbackInfo ci) {
+        if (!stack.isEmpty()) {
+            float f = (float)stack.getBobbingAnimationTime() - tickCounter.getTickDelta(false);
+            if (f > 0.0F) {
+                float g = 1.0F + f / 5.0F;
+                context.getMatrices().push();
+                context.getMatrices().translate((float)(x + 8), (float)(y + 12), 0.0F);
+                context.getMatrices().scale(1.0F / g, (g + 1.0F) / 2.0F, 1.0F);
+                context.getMatrices().translate((float)(-(x + 8)), (float)(-(y + 12)), 0.0F);
+            }
+
+            context.drawItem(player, stack, x, y, seed);
+            if (f > 0.0F) {
+                context.getMatrices().pop();
+            }
+
+            context.drawStackOverlay(this.client.textRenderer, stack, x, y);
+        }
+    }
 
     @Inject(at = @At("TAIL"), method = "render")
     private void renderSqueedometerHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo info) {

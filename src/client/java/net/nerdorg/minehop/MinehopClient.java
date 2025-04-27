@@ -3,6 +3,8 @@ package net.nerdorg.minehop;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
@@ -19,6 +21,7 @@ import net.nerdorg.minehop.entity.client.*;
 import net.nerdorg.minehop.event.JoinEvent;
 import net.nerdorg.minehop.event.KeyInputHandler;
 import net.nerdorg.minehop.networking.ClientPacketHandler;
+import net.nerdorg.minehop.networking.payloads.HandshakeIDPayload;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +62,10 @@ public class MinehopClient implements ClientModInitializer {
 			}
 		});
 
-		ClientPacketHandler.registerReceivers();
+		ClientPlayConnectionEvents.INIT.register((handler, client) -> {
+			ClientPacketHandler.registerReceivers();
+		});
+
 		ConfigWrapper.loadConfig();
 		squeedometerHud = new SqueedometerHud();
 

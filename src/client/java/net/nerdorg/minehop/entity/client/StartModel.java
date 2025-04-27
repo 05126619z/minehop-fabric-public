@@ -10,9 +10,10 @@ import net.nerdorg.minehop.entity.custom.StartEntity;
 // Made with Blockbench 4.9.4
 // Exported for Minecraft version 1.17+ for Yarn
 // Paste this class into your mod and generate all required imports
-public class StartModel extends EntityModel<StartEntity> {
+public class StartModel extends EntityModel<StartEntityRenderState> {
 	private final ModelPart bb_main;
 	public StartModel(ModelPart root) {
+		super(root);
 		this.bb_main = root.getChild("bb_main");
 	}
 	public static TexturedModelData getTexturedModelData() {
@@ -22,10 +23,6 @@ public class StartModel extends EntityModel<StartEntity> {
 		return TexturedModelData.of(modelData, 16, 16);
 	}
 	@Override
-	public void setAngles(StartEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-	}
-	@Override
-	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-		bb_main.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
+	public void setAngles(StartEntityRenderState state) {
 	}
 }

@@ -2,97 +2,84 @@ package net.nerdorg.minehop.networking;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.brigadier.ParseResults;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.commands.SpectateCommands;
 import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.discord.DiscordIntegration;
+import net.nerdorg.minehop.networking.payloads.*;
 import net.nerdorg.minehop.replays.ReplayEvents;
 import net.nerdorg.minehop.replays.ReplayManager;
 import net.nerdorg.minehop.util.Logger;
 import net.nerdorg.minehop.util.ZoneUtil;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class PacketHandler {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private  static boolean registered = false;
 
     public static void sendConfigToClient(ServerPlayerEntity player, MinehopConfig config) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        buf.writeDouble(config.movement.sv_friction);
-        buf.writeDouble(config.movement.sv_accelerate);
-        buf.writeDouble(config.movement.sv_airaccelerate);
-        buf.writeDouble(config.movement.sv_maxairspeed);
-        buf.writeDouble(config.movement.speed_mul);
-        buf.writeDouble(config.movement.sv_gravity);
-        buf.writeDouble(Minehop.speedCapMap.containsKey(player.getNameForScoreboard()) ? Minehop.speedCapMap.get(player.getNameForScoreboard()) : 1000000);
         DataManager.MapData currentMap = ZoneUtil.getCurrentMap(player);
-        buf.writeBoolean(currentMap != null && currentMap.hns);
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.CONFIG_SYNC_ID, buf));
+        ServerPlayNetworking.send(player,  new ConfigSyncPayload(
+            config.movement.sv_friction,
+        config.movement.sv_accelerate,
+        config.movement.sv_airaccelerate,
+        config.movement.sv_maxairspeed,
+        config.movement.speed_mul,
+        config.movement.sv_gravity,
+        Minehop.speedCapMap.containsKey(player.getNameForScoreboard()) ? Minehop.speedCapMap.get(player.getNameForScoreboard()) : 1000000,
+        currentMap != null && currentMap.hns
+        ));
     }
     public static void updateZone(ServerPlayerEntity player, int entityId, BlockPos pos1, BlockPos pos2, String name, int check_index) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        buf.writeInt(entityId);
-        buf.writeBlockPos(pos1);
-        buf.writeBlockPos(pos2);
-        buf.writeString(name);
-        buf.writeInt(check_index);
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.ZONE_SYNC_ID, buf));
+        ServerPlayNetworking.send(player,  new ZoneSyncIDPayload(
+                entityId,
+                new Vector3f(pos1.getX(), pos1.getY(), pos1.getZ()),
+                new Vector3f(pos2.getX(), pos2.getY(), pos2.getZ()),
+                name,
+                check_index
+        ));
     }
 
     public static void sendSelfVToggle(ServerPlayerEntity player) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        ServerPlayNetworking.send(player, new MyCustomPayload(ModMessages.SELF_V_TOGGLE, buf));
+        ServerPlayNetworking.send(player, new SelfVTogglePayload(true));
     }
 
     public static void sendOtherVToggle(ServerPlayerEntity player) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.OTHER_V_TOGGLE, buf));
+        ServerPlayNetworking.send(player,  new OtherVTogglePayload(true));
     }
 
     public static void sendReplayVToggle(ServerPlayerEntity player) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.REPLAY_V_TOGGLE, buf));
+        ServerPlayNetworking.send(player,  new ReplayVTogglePayload(true));
     }
 
     public static void sendEfficiency(ServerPlayerEntity player, double efficiency) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-        buf.writeDouble(efficiency);
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.SEND_EFFICIENCY, buf));
+        ServerPlayNetworking.send(player,  new SendEfficiencyPayload(efficiency));
     }
 
     public static void sendSpectators(ServerPlayerEntity player) {
         if (SpectateCommands.spectatorList.containsKey(player.getNameForScoreboard())) {
             List<String> spectators = SpectateCommands.spectatorList.get(player.getNameForScoreboard());
             if (spectators.size() > 1) {
-                PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-                buf.writeInt(spectators.size() - 1);
+                String buff = "";
+                buff += (spectators.size() - 1);
                 for (String spectator : spectators) {
                     if (!spectator.equals(player.getNameForScoreboard())) {
-                        buf.writeString(spectator);
+                        buff += ("~" + spectator);
                     }
                 }
 
-                ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.SEND_SPECTATORS, buf));
+                ServerPlayNetworking.send(player,  new SendSpectatorsPayload(buff));
             }
         }
     }
@@ -157,104 +144,88 @@ public class PacketHandler {
     }
 
     public static void sendSpecEfficiency(ServerPlayerEntity player, double last_jump_speed, int jump_count, double last_efficiency) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        buf.writeDouble(last_jump_speed);
-        buf.writeInt(jump_count);
-        buf.writeDouble(last_efficiency);
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.CLIENT_SPEC_EFFICIENCY, buf));
+        ServerPlayNetworking.send(player,  new CSpecEfficiencyPayload(last_jump_speed, jump_count, last_efficiency));
     }
 
     public static void sendOpenMapScreen(ServerPlayerEntity player, String title) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        buf.writeString(title);
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.OPEN_MAP_SCREEN, buf));
+        ServerPlayNetworking.send(player,  new OpenMapScreenPayload(title));
     }
 
     public static void sendMaps(ServerPlayerEntity player) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        String buff = "";
 
-        buf.writeInt(Minehop.mapList.size());
+        buff += Minehop.mapList.size();
 
         for (DataManager.MapData mapData : Minehop.mapList) {
-            buf.writeString(mapData.name);
-            buf.writeDouble(mapData.x);
-            buf.writeDouble(mapData.y);
-            buf.writeDouble(mapData.z);
-            buf.writeDouble(mapData.xrot);
-            buf.writeDouble(mapData.yrot);
-            buf.writeString(mapData.worldKey);
-            buf.writeBoolean(mapData.arena);
-            buf.writeBoolean(mapData.hns);
-            buf.writeInt(mapData.difficulty);
-            buf.writeInt(mapData.player_count);
+            buff += "^";
+            buff += mapData.name;buff += "~";
+            buff += mapData.x;buff += "~";
+            buff += mapData.y;buff += "~";
+            buff += mapData.z;buff += "~";
+            buff += mapData.xrot;buff += "~";
+            buff += mapData.yrot;buff += "~";
+            buff += mapData.worldKey;buff += "~";
+            buff += mapData.arena;buff += "~";
+            buff += mapData.hns;buff += "~";
+            buff += mapData.difficulty;buff += "~";
+            buff += mapData.player_count;
         }
 
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.SEND_MAPS, buf));
+        ServerPlayNetworking.send(player,  new SendMapPayload(buff));
     }
 
     public static void sendRecords(ServerPlayerEntity player) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        String buff = "";
 
-        buf.writeInt(Minehop.mapList.size());
-
+        buff += Minehop.mapList.size();
 
         for (DataManager.MapData mapData : Minehop.mapList) {
             DataManager.RecordData recordData = DataManager.getRecord(mapData.name);
+            buff += "^";
             if (recordData != null) {
-                buf.writeString(recordData.map_name);
-                buf.writeString(recordData.name);
-                buf.writeDouble(recordData.time);
+                buff += recordData.map_name;buff += "~";
+                buff += recordData.name;buff += "~";
+                buff += recordData.time;
             }
             else {
-                buf.writeString(mapData.name);
-                buf.writeString("None");
-                buf.writeDouble(1000000);
+                buff += mapData.name;buff += "~";
+                buff += "None";buff += "~";
+                buff += 1000000;
             }
         }
 
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.SEND_RECORDS, buf));
+        ServerPlayNetworking.send(player,  new SendRecordPayload(buff));
     }
 
     public static void sendPersonalRecords(ServerPlayerEntity player) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        String buff = "";
 
-        buf.writeInt(Minehop.personalRecordList.size());
+        buff += Minehop.personalRecordList.size();
 
         for (DataManager.RecordData recordData : Minehop.personalRecordList) {
-            buf.writeString(recordData.map_name);
-            buf.writeString(recordData.name);
-            buf.writeDouble(recordData.time);
+            buff += "^";
+            buff += recordData.map_name;buff += "~";
+            buff += recordData.name;buff += "~";
+            buff += recordData.time;
         }
 
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.SEND_PERSONAL_RECORDS, buf));
+        ServerPlayNetworking.send(player,  new SendPersonalRecordPayload(buff));
     }
 
     public static void sendPower(ServerPlayerEntity player, double x_power, double y_power, double z_power, BlockPos boosterPos) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-
-        buf.writeDouble(x_power);
-        buf.writeDouble(y_power);
-        buf.writeDouble(z_power);
-
-        buf.writeInt(boosterPos.getX());
-        buf.writeInt(boosterPos.getY());
-        buf.writeInt(boosterPos.getZ());
-
-        ServerPlayNetworking.send(player,  new MyCustomPayload(ModMessages.UPDATE_POWER, buf));
+        ServerPlayNetworking.send(player,  new UpdatePowerPayload(x_power, y_power, z_power, boosterPos.getX(), boosterPos.getY(), boosterPos.getZ()));
     }
 
 
     public static void registerReceivers() {
-        ServerPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SEND_TIME), (payload, ctx) -> {
+        if (registered) {return;}
+        registered = true;
+
+        ServerPlayNetworking.registerGlobalReceiver(SendTimePayload.ID, (payload, ctx) -> {
             ServerPlayerEntity player = ctx.player();
             MinecraftServer server = ctx.server();
-            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
             if (!player.isSpectator()) {
-                float time = buf.readFloat();
+                float time = payload.time();
                 if (player != null && Minehop.timerManager.containsKey(player.getNameForScoreboard())) {
                     HashMap<String, Long> timerMap = Minehop.timerManager.get(player.getNameForScoreboard());
                     List<String> keyList = timerMap.keySet().stream().toList();
@@ -283,20 +254,18 @@ public class PacketHandler {
                 }
             }
         });
-        ServerPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.MAP_FINISH), (payload, ctx) -> {
+        ServerPlayNetworking.registerGlobalReceiver(MapFinishPayload.ID, (payload, ctx) -> {
             ServerPlayerEntity player = ctx.player();
             MinecraftServer server = ctx.server();
-            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
-            float time = buf.readFloat();
+            float time = payload.time();
             handleMapCompletion(player, server, time);
         });
-        ServerPlayNetworking.registerGlobalReceiver(new CustomPayload.Id<MyCustomPayload>(ModMessages.SERVER_SPEC_EFFICIENCY), (payload, ctx) -> {
+        ServerPlayNetworking.registerGlobalReceiver(SSpecEfficiencyPayload.ID, (payload, ctx) -> {
             ServerPlayerEntity player = ctx.player();
             MinecraftServer server = ctx.server();
-            PacketByteBuf buf = ((MyCustomPayload) payload).buff();
-            double last_jump_speed =  buf.readDouble();
-            int jump_count = buf.readInt();
-            double last_efficiency = buf.readDouble();
+            double last_jump_speed =  payload.last_jump_speed();
+            int jump_count = (int) payload.jump_count();
+            double last_efficiency = payload.last_efficiency();
 
             Minehop.lastEfficiencyMap.put(player.getNameForScoreboard(), new ReplayManager.SSJEntry(jump_count, last_jump_speed, last_efficiency));
 

@@ -1,24 +1,17 @@
 package net.nerdorg.minehop.entity.client;
 
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.CrossbowPosing;
 import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Arm;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.MathHelper;
-import net.nerdorg.minehop.entity.custom.ReplayEntity;
 
 // Made with Blockbench 4.9.4
 // Exported for Minecraft version 1.17+ for Yarn
 // Paste this class into your mod and generate all required imports
-public class ReplayModel extends EntityModel<ReplayEntity> {
+public class ReplayModel extends EntityModel<EndEntityRenderState> {
 	private final ModelPart root;
 	private final ModelPart head;
 	private final ModelPart body;
 	public ReplayModel(ModelPart root) {
+		super(root);
 		this.root = root.getChild("root");
 		this.head = this.root.getChild("head");
 		this.body = this.root.getChild("body");
@@ -36,12 +29,8 @@ public class ReplayModel extends EntityModel<ReplayEntity> {
 		return TexturedModelData.of(modelData, 64, 64);
 	}
 	@Override
-	public void setAngles(ReplayEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+	public void setAngles(EndEntityRenderState state) {
 		this.body.visible = false;
-		this.head.yaw = (float) Math.toRadians(netHeadYaw);
-	}
-	@Override
-	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-		root.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
+		this.head.yaw = (float) Math.toRadians(head.yaw);
 	}
 }

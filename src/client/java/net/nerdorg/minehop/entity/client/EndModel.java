@@ -1,15 +1,13 @@
 package net.nerdorg.minehop.entity.client;
 
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.nerdorg.minehop.entity.custom.EndEntity;
-import net.nerdorg.minehop.entity.custom.StartEntity;
 
-public class EndModel extends EntityModel<EndEntity> {
+public class EndModel extends EntityModel<EndEntityRenderState> {
 	private final ModelPart bb_main;
+
 	public EndModel(ModelPart root) {
+		super(root);
 		this.bb_main = root.getChild("bb_main");
 	}
 	public static TexturedModelData getTexturedModelData() {
@@ -18,11 +16,9 @@ public class EndModel extends EntityModel<EndEntity> {
 		ModelPartData bb_main = modelPartData.addChild("bb_main", ModelPartBuilder.create().uv(2, 2).cuboid(1.0F, 0.0F, -1.0F, 0.0F, 0.0F, 0.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
 		return TexturedModelData.of(modelData, 16, 16);
 	}
+
 	@Override
-	public void setAngles(EndEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+	public void setAngles(EndEntityRenderState state) {
 	}
-	@Override
-	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-		bb_main.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
-	}
+
 }
