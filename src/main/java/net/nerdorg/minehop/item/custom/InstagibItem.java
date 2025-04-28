@@ -159,7 +159,7 @@ public class InstagibItem extends Item {
                     List<Vec3d> randomCheckpoint = checkpointPositions.get(random.nextInt(0, checkpointPositions.size()));
                     Vec3d targetPos = randomCheckpoint.get(0);
                     Vec3d rotPos = randomCheckpoint.get(1);
-                    target.teleport(foundWorld, targetPos.getX(), targetPos.getY(), targetPos.getZ(), PositionFlag.VALUES, (float) rotPos.getY(), (float) rotPos.getX(), true);
+                    target.requestTeleport(targetPos.getX(), targetPos.getY(), targetPos.getZ());
                     if (target instanceof ServerPlayerEntity targetPlayerEntity) {
                         Logger.logSuccess(attacker, "You shot " + targetPlayerEntity.getNameForScoreboard() + ".");
                         Logger.logFailure(targetPlayerEntity, "You were shot by " + attacker.getNameForScoreboard() + ".");

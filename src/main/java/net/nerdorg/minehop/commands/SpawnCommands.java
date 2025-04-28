@@ -56,15 +56,10 @@ public class SpawnCommands {
                 if (!serverPlayerEntity.isCreative()) {
                     serverPlayerEntity.getInventory().clear();
                 }
-                serverPlayerEntity.teleport(
-                        context.getSource().getServer().getOverworld(),
+                serverPlayerEntity.requestTeleport(
                         pairedMap.x,
                         pairedMap.y,
-                        pairedMap.z,
-                        PositionFlag.VALUES,
-                        (float) pairedMap.yrot,
-                        (float) pairedMap.xrot,
-                        true
+                        pairedMap.z
                 );
                 Minehop.timerManager.remove(serverPlayerEntity.getNameForScoreboard());
                 Logger.logSuccess(serverPlayerEntity, "Teleporting to spawn.");
@@ -75,7 +70,7 @@ public class SpawnCommands {
                         if (!spectatorPlayer.isCreative()) {
                             spectatorPlayer.getInventory().clear();
                         }
-                        spectatorPlayer.teleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ(), true);
+                        spectatorPlayer.requestTeleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
                         spectatorPlayer.setCameraEntity(serverPlayerEntity);
                     }
                 }

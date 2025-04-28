@@ -52,15 +52,10 @@ public class JoinLeaveManager {
                     }
                     if (foundWorld != null) {
                         networkHandler.player.getInventory().clear();
-                        networkHandler.player.teleport(
-                                server.getOverworld(),
+                        networkHandler.player.requestTeleport(
                                 mapData.x,
                                 mapData.y,
-                                mapData.z,
-                                PositionFlag.VALUES,
-                                (float) mapData.yrot,
-                                (float) mapData.xrot,
-                                true
+                                mapData.z
                         );
                     }
                 }

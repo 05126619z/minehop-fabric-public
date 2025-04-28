@@ -165,7 +165,7 @@ public class SpectateCommands {
                     if (!serverPlayerEntity.isCreative()) {
                         serverPlayerEntity.getInventory().clear();
                     }
-                    serverPlayerEntity.teleport(replayEntity.getX(), replayEntity.getY(), replayEntity.getZ(), true);
+                    serverPlayerEntity.requestTeleport(replayEntity.getX(), replayEntity.getY(), replayEntity.getZ());
                     serverPlayerEntity.setCameraEntity(replayEntity);
                 } else {
                     Logger.logSuccess(serverPlayerEntity, "Please teleport to the map before viewing it's replay.");
@@ -192,7 +192,7 @@ public class SpectateCommands {
                     if (!serverPlayerEntity.isCreative()) {
                         serverPlayerEntity.getInventory().clear();
                     }
-                    serverPlayerEntity.teleport(playerEntity.getX(), playerEntity.getY(), playerEntity.getZ(), true);
+                    serverPlayerEntity.requestTeleport(playerEntity.getX(), playerEntity.getY(), playerEntity.getZ());
                     serverPlayerEntity.setCameraEntity(playerEntity);
                 }
                 else {

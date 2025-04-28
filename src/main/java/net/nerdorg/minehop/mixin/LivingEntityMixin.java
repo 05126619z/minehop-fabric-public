@@ -320,6 +320,14 @@ public abstract class LivingEntityMixin extends Entity {
         //
         boolean fullGrounded = this.wasOnGround && this.isOnGround(); //Allows for no friction 1-frame upon landing.
         if (fullGrounded) {
+            if (!Minehop.groundedList.contains(this.getNameForScoreboard())) {
+                Minehop.groundedList.add(this.getNameForScoreboard());
+            }
+        }
+        else {
+            Minehop.groundedList.remove(this.getNameForScoreboard());
+        }
+        if (fullGrounded) {
             Vec3d velFin = this.getVelocity();
             Vec3d horFin = new Vec3d(velFin.x,0.0F,velFin.z);
             float speed = (float) horFin.length();

@@ -320,7 +320,7 @@ public class MapUtilCommands {
                         if (!serverPlayerEntity.isCreative()) {
                             serverPlayerEntity.getInventory().clear();
                         }
-                        serverPlayerEntity.teleport(foundWorld, currentMapData.x, currentMapData.y, currentMapData.z, PositionFlag.VALUES, (float) currentMapData.yrot, (float) currentMapData.xrot, true);
+                        serverPlayerEntity.requestTeleport(currentMapData.x, currentMapData.y, currentMapData.z);
                         if (SpectateCommands.spectatorList.containsKey(serverPlayerEntity.getNameForScoreboard())) {
                             List<String> spectators = SpectateCommands.spectatorList.get(serverPlayerEntity.getNameForScoreboard());
                             for (String spectator : spectators) {
@@ -329,7 +329,7 @@ public class MapUtilCommands {
                                     if (!spectatorPlayer.isCreative()) {
                                         spectatorPlayer.getInventory().clear();
                                     }
-                                    spectatorPlayer.teleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ(), true);
+                                    spectatorPlayer.requestTeleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
                                     spectatorPlayer.setCameraEntity(serverPlayerEntity);
                                 }
                             }
@@ -397,7 +397,7 @@ public class MapUtilCommands {
                     if (!serverPlayerEntity.isCreative()) {
                         serverPlayerEntity.getInventory().clear();
                     }
-                    serverPlayerEntity.teleport(foundWorld, targetPos.getX(), targetPos.getY(), targetPos.getZ(),PositionFlag.VALUES, (float) rotPos.getY(), (float) rotPos.getX(), true);
+                    serverPlayerEntity.requestTeleport(targetPos.getX(), targetPos.getY(), targetPos.getZ());
                     if (SpectateCommands.spectatorList.containsKey(serverPlayerEntity.getNameForScoreboard())) {
                         List<String> spectators = SpectateCommands.spectatorList.get(serverPlayerEntity.getNameForScoreboard());
                         for (String spectator : spectators) {
@@ -406,7 +406,7 @@ public class MapUtilCommands {
                                 if (!spectatorPlayer.isCreative()) {
                                     spectatorPlayer.getInventory().clear();
                                 }
-                                spectatorPlayer.teleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ(), true);
+                                spectatorPlayer.requestTeleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
                                 spectatorPlayer.setCameraEntity(serverPlayerEntity);
                             }
                         }

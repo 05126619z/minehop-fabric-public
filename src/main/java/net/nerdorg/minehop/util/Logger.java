@@ -47,19 +47,19 @@ public class Logger {
 
     public static void logSuccess(PlayerEntity playerEntity, String message) {
         if (playerEntity != null) {
-            playerEntity.sendMessage(prefix.copy().append(Text.literal(message).withColor(Formatting.GOLD.getColorValue())), true);
+            playerEntity.sendMessage(prefix.copy().append(Text.literal(message).withColor(Formatting.GOLD.getColorValue())), false);
         }
     }
 
     public static void log(PlayerEntity playerEntity, Text message) {
         if (playerEntity != null) {
-            playerEntity.sendMessage(prefix.copy().append(message), true);
+            playerEntity.sendMessage(prefix.copy().append(message), false);
         }
     }
 
     public static void logFailure(PlayerEntity playerEntity, String message) {
         if (playerEntity != null) {
-            playerEntity.sendMessage(prefix.copy().append(Text.literal(message).withColor(Formatting.RED.getColorValue())), true);
+            playerEntity.sendMessage(prefix.copy().append(Text.literal(message).withColor(Formatting.RED.getColorValue())), false);
         }
     }
 }

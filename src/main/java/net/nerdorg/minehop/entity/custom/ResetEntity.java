@@ -121,7 +121,7 @@ public class ResetEntity extends Zone {
                     int avgY = (this.corner1.getY() + this.corner2.getY()) / 2;
                     int avgZ = (this.corner1.getZ() + this.corner2.getZ()) / 2;
 
-                    this.teleport(avgX, avgY, avgZ, true);
+                    this.requestTeleport(avgX, avgY, avgZ);
                 }
                 for (ServerPlayerEntity worldPlayer : serverWorld.getPlayers()) {
                     PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.paired_map, this.check_index);
@@ -168,7 +168,7 @@ public class ResetEntity extends Zone {
                                 if (startZone != null){
                                     Minehop.playerMapLocation.put(player.getUuidAsString(), startZone);
                                 }
-                                player.teleport(serverWorld, targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), PositionFlag.VALUES, targetRot.y, targetRot.x, true);
+                                player.requestTeleport(targetLocation.getX(), targetLocation.getY(), targetLocation.getZ());
                             }
                         }
                     }

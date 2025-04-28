@@ -244,7 +244,7 @@ public class PacketHandler {
                                 if (!spectatorPlayer.isCreative()) {
                                     spectatorPlayer.getInventory().clear();
                                 }
-                                spectatorPlayer.teleport(player.getX(), player.getY(), player.getZ(), true);
+                                spectatorPlayer.requestTeleport(player.getX(), player.getY(), player.getZ());
                                 spectatorPlayer.setCameraEntity(player);
                                 Logger.logActionBar(spectatorPlayer, "Time: " + formattedNumber + " PB: " + (personalRecord != 0 ? String.format("%.5f", personalRecord) : "No PB"));
                             }
