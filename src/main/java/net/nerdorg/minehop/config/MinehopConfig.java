@@ -8,6 +8,9 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public class MinehopConfig implements ConfigData {
     public static boolean enabled = true;
     public boolean fall_damage = true;
+    public boolean hideSelf = false;
+    public boolean hideOthers = false;
+    public boolean hideReplay = false;
     public boolean nulls = true;
     @ConfigEntry.Gui.CollapsibleObject
     public JHud jHud = new JHud();

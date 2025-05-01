@@ -84,11 +84,11 @@ public class PacketHandler {
         }
     }
 
-    private static void handleMapCompletion(ServerPlayerEntity player, MinecraftServer server, float time) {
+    private static void handleMapCompletion(ServerPlayerEntity player, MinecraftServer server, String mapName, float time) {
         float ping_limit = 300; // ping limit in ms
         if (!player.isCreative() && !player.isSpectator() && !Minehop.currentCheaters.contains(player)) {
             if (Minehop.timerManager.containsKey(player.getNameForScoreboard())) {
-                String map_name = ZoneUtil.getCurrentMapName(player);
+                String map_name = mapName;
 
                 HashMap<String, Long> timerMap = Minehop.timerManager.get(player.getNameForScoreboard());
                 List<String> keyList = timerMap.keySet().stream().toList();
@@ -257,8 +257,9 @@ public class PacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(MapFinishPayload.ID, (payload, ctx) -> {
             ServerPlayerEntity player = ctx.player();
             MinecraftServer server = ctx.server();
+            String mapName = payload.map_name();
             float time = payload.time();
-            handleMapCompletion(player, server, time);
+            handleMapCompletion(player, server, mapName, time);
         });
         ServerPlayNetworking.registerGlobalReceiver(SSpecEfficiencyPayload.ID, (payload, ctx) -> {
             ServerPlayerEntity player = ctx.player();

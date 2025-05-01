@@ -25,6 +25,7 @@ import java.util.*;
 public class DataManager {
     private static final Type mapListType = new TypeToken<List<MapData>>(){}.getType();
     private static final Type recordListType = new TypeToken<List<RecordData>>(){}.getType();
+    public static List<Pair<String, String>> currentMapPlayers = new ArrayList<>();
 
     private static final String folderName = "MineHop_Data";
     public static final String mapListLocation = folderName+"/minehop_maps.json";

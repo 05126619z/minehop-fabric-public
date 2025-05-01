@@ -1,5 +1,6 @@
 package net.nerdorg.minehop.entity.client;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -12,10 +13,12 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.MinehopClient;
+import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.entity.custom.EndEntity;
 import net.nerdorg.minehop.entity.custom.StartEntity;
 import net.nerdorg.minehop.networking.ClientPacketHandler;
 import net.nerdorg.minehop.render.RenderUtil;
+import net.nerdorg.minehop.util.ZoneUtil;
 import org.joml.Vector3f;
 
 public class StartRenderer extends MobEntityRenderer<StartEntity, StartEntityRenderState, StartModel> {
@@ -62,12 +65,39 @@ public class StartRenderer extends MobEntityRenderer<StartEntity, StartEntityRen
                 if (colliderBox.contains(client.player.getPos())) {
                     MinehopClient.startTime = System.nanoTime();
                     MinehopClient.lastSendTime = 0;
+                    boolean changed = false;
+                    for (Pair<String, String> entry : DataManager.currentMapPlayers) {
+                        if (entry.getFirst().equals(client.player.getUuidAsString())) {
+                            DataManager.currentMapPlayers.remove(entry);
+                            DataManager.currentMapPlayers.add(new Pair<>(
+                                    client.player.getUuidAsString(),
+                                    renderState.startEntity.getPairedMap()
+                            ));
+                            changed = true;
+                            break;
+                        }
+                    }
+                    if (!changed) {
+                        DataManager.currentMapPlayers.add(new Pair<>(
+                                client.player.getUuidAsString(),
+                                renderState.startEntity.getPairedMap()
+                        ));
+                    }
                 }
             }
 
             Vec3d corner1Offset = new Vec3d(corner1.getX(), corner1.getY(), corner1.getZ()).subtract(renderState.startEntity.getPos());
             Vec3d corner2Offset = new Vec3d(corner2.getX(), corner2.getY(), corner2.getZ()).subtract(renderState.startEntity.getPos());
-            RenderUtil.drawCuboid(vertexConsumerProvider, matrixStack, new Vector3f((float) corner1Offset.getX(), (float) corner1Offset.getY(), (float) corner1Offset.getZ()), new Vector3f((float) corner2Offset.getX(), (float) corner2Offset.getY(), (float) corner2Offset.getZ()), 10, 255, 0, 255, 0);
+            RenderUtil.drawCuboid(
+                    vertexConsumerProvider,
+                    matrixStack,
+                    new Vector3f((float) corner1Offset.getX(),
+                            (float) corner1Offset.getY(),
+                            (float) corner1Offset.getZ()),
+                    new Vector3f((float) corner2Offset.getX(),
+                            (float) corner2Offset.getY(),
+                            (float) corner2Offset.getZ()),
+                    10, 255, 0, 255, 0);
         }
         super.render(renderState, matrixStack, vertexConsumerProvider, i);
     }

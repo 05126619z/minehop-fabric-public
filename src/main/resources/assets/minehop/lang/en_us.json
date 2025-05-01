@@ -42,6 +42,11 @@
   "text.autoconfig.minehop.option.jHud.gaugeHud.gauge_x_offset": "Gauge X Offset (The values are percentages, 50 is centered).",
   "text.autoconfig.minehop.option.jHud.gaugeHud.gauge_y_offset": "Gauge Y Offset (The values are percentages, 50 is centered).",
 
+  "text.autoconfig.minehop.option.enabled": "Enabled",
+  "text.autoconfig.minehop.option.fall_damage": " Fall Damage",
+  "text.autoconfig.minehop.option.hideSelf": " Hide Self",
+  "text.autoconfig.minehop.option.hideOthers": " Hide Others",
+  "text.autoconfig.minehop.option.hideReplay": " Hide Replays",
   "text.autoconfig.minehop.option.nulls": "Nulls (Uses the last key pressed as your sideways movement input instead of combining them)",
 
   "text.autoconfig.minehop.option.movement.sv_friction": "Ground Friction (sv_friction)",

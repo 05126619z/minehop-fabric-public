@@ -17,6 +17,8 @@ import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.MinehopClient;
 import net.nerdorg.minehop.anticheat.ProcessChecker;
 import net.nerdorg.minehop.block.entity.BoostBlockEntity;
+import net.nerdorg.minehop.config.ConfigWrapper;
+import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.entity.client.CustomPlayerEntityRenderer;
 import net.nerdorg.minehop.entity.custom.EndEntity;
@@ -87,21 +89,24 @@ public class ClientPacketHandler {
         ClientPlayNetworking.registerGlobalReceiver(SelfVTogglePayload.ID, (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
             ctx.client().execute(() -> {
-                MinehopClient.hideSelf = !MinehopClient.hideSelf;
+              //  MinehopClient.hideSelf = !MinehopClient.hideSelf;
+                ConfigWrapper.config.hideSelf = !ConfigWrapper.config.hideSelf;
             });
         });
 
         ClientPlayNetworking.registerGlobalReceiver(OtherVTogglePayload.ID, (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
             ctx.client().execute(() -> {
-                MinehopClient.hideOthers = !MinehopClient.hideOthers;
+             //   MinehopClient.hideOthers = !MinehopClient.hideOthers;
+                ConfigWrapper.config.hideOthers = !ConfigWrapper.config.hideOthers;
             });
         });
 
         ClientPlayNetworking.registerGlobalReceiver(OtherVTogglePayload.ID, (payload, ctx) -> {
             // Ensure you are on the main thread when modifying the game or accessing client-side only classes
             ctx.client().execute(() -> {
-                MinehopClient.hideReplay = !MinehopClient.hideReplay;
+                //MinehopClient.hideReplay = !MinehopClient.hideReplay;
+                ConfigWrapper.config.hideReplay = !ConfigWrapper.config.hideReplay;
             });
         });
 
@@ -314,8 +319,8 @@ public class ClientPacketHandler {
         ClientPlayNetworking.send(new AntiCheatPayload(checkResults));
     }
 
-    public static void sendEndMapEvent(float time) {
-        ClientPlayNetworking.send(new MapFinishPayload(time));
+    public static void sendEndMapEvent(String map_name, float time) {
+        ClientPlayNetworking.send(new MapFinishPayload(map_name, time));
     }
 
     public static void sendCurrentTime(float time) {

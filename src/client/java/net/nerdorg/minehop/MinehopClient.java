@@ -40,9 +40,9 @@ public class MinehopClient implements ClientModInitializer {
 	public static double gauge;
 	public static boolean wasOnGround = false;
 
-	public static boolean hideSelf = false;
-	public static boolean hideReplay = false;
-	public static boolean hideOthers = false;
+	//public static boolean hideSelf = false;
+	//public static boolean hideReplay = false;
+	//public static boolean hideOthers = false;
 
 	public static long startTime = 0;
 	public static float lastSendTime = 0;

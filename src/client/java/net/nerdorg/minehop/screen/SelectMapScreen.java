@@ -36,6 +36,18 @@ public class SelectMapScreen extends Screen {
     }
 
     @Override
+    protected void applyBlur() {
+        return;
+    }
+
+    @Override
+    public void blur() {
+        return;
+    }
+
+
+
+    @Override
     protected void init() {
         super.init();
         this.textFieldWidget = new TextFieldWidget(this.client.textRenderer, (this.width / 2) - (128 / 2), 16, 128, 14, Text.literal("Map Filter"));

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.GameRenderer;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.MinehopClient;
+import net.nerdorg.minehop.config.ConfigWrapper;
 import net.nerdorg.minehop.item.ModItems;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +21,7 @@ public class GameRendererMixin {
 
     @Inject(method = "renderHand", at = @At("HEAD"), cancellable = true)
     private void onRenderHand(CallbackInfo ci) {
-        if (MinehopClient.hideSelf && !this.client.player.isHolding(ModItems.INSTAGIB_GUN)) {
+        if (ConfigWrapper.config.hideSelf && !this.client.player.isHolding(ModItems.INSTAGIB_GUN)) {
             ci.cancel();
         }
     }

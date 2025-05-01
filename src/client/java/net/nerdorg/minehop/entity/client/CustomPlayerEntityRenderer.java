@@ -8,6 +8,7 @@ import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.util.Identifier;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.MinehopClient;
+import net.nerdorg.minehop.config.ConfigWrapper;
 
 import java.util.HashMap;
 
@@ -51,7 +52,7 @@ public class CustomPlayerEntityRenderer extends PlayerEntityRenderer {
     @Override
     public boolean shouldRender(AbstractClientPlayerEntity entity, Frustum frustum, double x, double y, double z) {
 
-        if (MinehopClient.hideOthers) {
+        if (ConfigWrapper.config.hideOthers) {
             return false;
         }
 

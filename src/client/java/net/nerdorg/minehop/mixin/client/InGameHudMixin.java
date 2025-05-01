@@ -98,21 +98,21 @@ public abstract class InGameHudMixin {
 
     @Inject(at = @At("HEAD"), method = "renderHealthBar", cancellable = true)
     private void renderHealth(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
-        if (MinehopClient.hideSelf) {
+        if (ConfigWrapper.config.hideSelf) {
             ci.cancel();
         }
     }
 
     @Inject(at = @At("HEAD"), method = "renderStatusBars", cancellable = true)
     private void renderStatusBars(DrawContext context, CallbackInfo ci) {
-        if (MinehopClient.hideSelf) {
+        if (ConfigWrapper.config.hideSelf) {
             ci.cancel();
         }
     }
 
     @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
     private void renderExperienceBar(DrawContext context, int x, CallbackInfo ci) {
-        if (MinehopClient.hideSelf) {
+        if (ConfigWrapper.config.hideSelf) {
             ci.cancel();
         }
     }
@@ -121,7 +121,7 @@ public abstract class InGameHudMixin {
 
     @Inject(at = @At("HEAD"), method = "renderHotbar", cancellable = true)
     private void renderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        if (!MinehopClient.hideSelf) {
+        if (!ConfigWrapper.config.hideSelf) {
             PlayerEntity playerEntity = this.getCameraPlayer();
             if (playerEntity != null) {
                 ItemStack itemStack = playerEntity.getOffHandStack();

@@ -17,6 +17,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.nerdorg.minehop.MinehopClient;
+import net.nerdorg.minehop.config.ConfigWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,7 +31,7 @@ public abstract class PlayerEntityRendererMixin<T extends LivingEntity, S extend
         MinecraftClient client = MinecraftClient.getInstance();
         if (client != null) {
             if (client.player != null) {
-                if (MinehopClient.hideOthers && !entity.getNameForScoreboard().equals(client.player.getNameForScoreboard())) {
+                if (ConfigWrapper.config.hideOthers && !entity.getNameForScoreboard().equals(client.player.getNameForScoreboard())) {
                     ci.cancel();
                 }
             }

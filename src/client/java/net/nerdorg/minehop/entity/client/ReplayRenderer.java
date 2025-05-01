@@ -6,6 +6,7 @@ import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.util.Identifier;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.MinehopClient;
+import net.nerdorg.minehop.config.ConfigWrapper;
 import net.nerdorg.minehop.entity.custom.ReplayEntity;
 
 public class ReplayRenderer extends MobEntityRenderer<ReplayEntity, EndEntityRenderState, ReplayModel> {
@@ -22,7 +23,7 @@ public class ReplayRenderer extends MobEntityRenderer<ReplayEntity, EndEntityRen
 
     @Override
     public boolean shouldRender(ReplayEntity mobEntity, Frustum frustum, double d, double e, double f) {
-        return !MinehopClient.hideReplay;
+        return !ConfigWrapper.config.hideOthers;
     }
 
     @Override
