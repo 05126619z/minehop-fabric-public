@@ -32,7 +32,7 @@ public class MultiplayerScreenMixin {
         if (entry != null && !(entry instanceof MultiplayerServerListWidget.ScanningEntry)) {
             this.buttonJoin.active = true;
             if (entry instanceof MultiplayerServerListWidget.ServerEntry serverEntry) {
-                if (!serverEntry.getServer().address.equals("mh.nerd-org.com")) {
+                if (!serverEntry.getServer().address.equals("play.minehop.net")) {
                     this.buttonEdit.active = true;
                     this.buttonDelete.active = true;
                 }
