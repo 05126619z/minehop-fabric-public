@@ -490,6 +490,28 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
     void jump(CallbackInfo ci) {
+        MinehopConfig config;
+        double speedCap = 1000000;
+        if (Minehop.override_config && Minehop.receivedConfig) {
+            config = new MinehopConfig();
+            config.movement.sv_friction = Minehop.o_sv_friction;
+            config.movement.sv_accelerate = Minehop.o_sv_accelerate;
+            config.movement.sv_airaccelerate = Minehop.o_sv_airaccelerate;
+            config.movement.sv_maxairspeed = Minehop.o_sv_maxairspeed;
+            config.movement.speed_mul = Minehop.o_speed_mul;
+            config.movement.sv_gravity = Minehop.o_sv_gravity;
+            config.movement.speed_coefficient = Minehop.o_speed_coefficient;
+            config.enabled = Minehop.o_enabled;
+            config.fall_damage = Minehop.o_fall_damage;
+            speedCap = Minehop.o_speed_cap;
+        }
+        else {
+            config = ConfigWrapper.config;
+        }
+
+        //Disable if it's disabled lol
+        if (!config.enabled) { return; }
+
         Vec3d vecFin = this.getVelocity();
         double yVel = this.getJumpVelocity();
         if (this.hasStatusEffect(StatusEffects.JUMP_BOOST)) {

@@ -58,6 +58,8 @@ public abstract class InGameHudMixin {
             config.jHud.speedHud = ConfigWrapper.config.jHud.speedHud;
             config.jHud.prespeedHud = ConfigWrapper.config.jHud.prespeedHud;
             config.jHud.gaugeHud = ConfigWrapper.config.jHud.gaugeHud;
+            config.enabled = Minehop.o_enabled;
+            config.fall_damage = Minehop.o_fall_damage;
         }
         else {
             config = ConfigWrapper.config;
