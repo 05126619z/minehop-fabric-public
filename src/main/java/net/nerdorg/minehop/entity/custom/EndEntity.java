@@ -24,7 +24,6 @@ import java.util.List;
 public class EndEntity extends Zone {
     private BlockPos corner1;
     private BlockPos corner2;
-    private String paired_map = "";
 
     public EndEntity(EntityType<? extends MobEntity> entityType, World world) {
         super(entityType, world);
@@ -43,7 +42,6 @@ public class EndEntity extends Zone {
             nbt.putInt("Corner2Y", corner2.getY());
             nbt.putInt("Corner2Z", corner2.getZ());
         }
-        nbt.putString("map", paired_map);
     }
 
     @Override
@@ -58,12 +56,6 @@ public class EndEntity extends Zone {
         int y2 = nbt.getInt("Corner2Y");
         int z2 = nbt.getInt("Corner2Z");
         corner2 = new BlockPos(x2, y2, z2);
-
-        paired_map = nbt.getString("map");
-    }
-
-    public void setPairedMap(String paired_map) {
-        this.paired_map = paired_map;
     }
 
     public void setCorner1(BlockPos corner1) {
@@ -72,10 +64,6 @@ public class EndEntity extends Zone {
 
     public void setCorner2(BlockPos corner2) {
         this.corner2 = corner2;
-    }
-
-    public String getPairedMap() {
-        return paired_map;
     }
 
     public BlockPos getCorner1() {
@@ -104,7 +92,7 @@ public class EndEntity extends Zone {
                     this.teleport(avgX, avgY, avgZ);
                 }
                 for (ServerPlayerEntity worldPlayer : serverWorld.getPlayers()) {
-                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.paired_map, 0);
+                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.getPairedMap(), 0);
                 }
             }
         }
