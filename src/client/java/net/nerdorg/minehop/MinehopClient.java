@@ -46,14 +46,14 @@ public class MinehopClient implements ClientModInitializer {
 
 	public static List<String> spectatorList = new ArrayList<>();
 
-    @Override
+	@Override
 	public void onInitializeClient() {
 		MinecraftClient minecraft = MinecraftClient.getInstance();
 		minecraft.execute(() -> {
 			ServerList serverList = new ServerList(minecraft);
 			serverList.loadFile();
 			if (!isServerInList(serverList, "play.minehop.net")) {
-				serverList.add(new ServerInfo("§c§l§nOfficial Minehop Server", "play.minehop.net", ServerInfo.ServerType.OTHER), false);
+				serverList.add(new ServerInfo("§c§l§nOfficial Minehop Server", "play.minehop.net", false), false);
 				serverList.swapEntries(0, serverList.size() - 1);
 				serverList.saveFile();
 			}
