@@ -131,10 +131,10 @@ public class ResetEntity extends Zone {
                                         Vec3d rotVec3d = pairedMap.checkpointPositions.get(this.check_index - 1).get(1);
                                         targetRot = new Vec2f((float) rotVec3d.getX(), (float) rotVec3d.getY());
                                     } else {
-                                        Minehop.timerManager.remove(player.getNameForScoreboard());
+                                        Minehop.timerManager.remove(player.getEntityName());
                                     }
                                 } else {
-                                    Minehop.timerManager.remove(player.getNameForScoreboard());
+                                    Minehop.timerManager.remove(player.getEntityName());
                                 }
                                 if (!player.isCreative()) {
                                     player.getInventory().clear();
