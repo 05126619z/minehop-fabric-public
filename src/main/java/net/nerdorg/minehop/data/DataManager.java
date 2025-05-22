@@ -2,7 +2,6 @@ package net.nerdorg.minehop.data;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.mojang.datafixers.util.Pair;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,7 +24,6 @@ import java.util.*;
 public class DataManager {
     private static final Type mapListType = new TypeToken<List<MapData>>(){}.getType();
     private static final Type recordListType = new TypeToken<List<RecordData>>(){}.getType();
-    public static List<Pair<String, String>> currentMapPlayers = new ArrayList<>();
 
     private static final String folderName = "MineHop_Data";
     public static final String mapListLocation = folderName+"/minehop_maps.json";

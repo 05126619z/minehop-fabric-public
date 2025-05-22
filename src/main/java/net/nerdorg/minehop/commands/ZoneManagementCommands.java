@@ -140,8 +140,8 @@ public class ZoneManagementCommands {
         DataManager.MapData pairedMap = DataManager.getMap(name);
         if (pairedMap != null) {
             ServerWorld serverWorld = context.getSource().getWorld();
-            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getEntityName())) {
-                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getEntityName());
+            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getNameForScoreboard())) {
+                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getNameForScoreboard());
                 if (setPositions[0] != null && setPositions[1] != null) {
                     ResetEntity resetEntity = ModEntities.RESET_ENTITY.spawn(serverWorld, setPositions[0], SpawnReason.NATURAL);
                     resetEntity.setCorner1(setPositions[0]);
@@ -170,8 +170,8 @@ public class ZoneManagementCommands {
         DataManager.MapData pairedMap = DataManager.getMap(name);
         if (pairedMap != null) {
             ServerWorld serverWorld = context.getSource().getWorld();
-            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getEntityName())) {
-                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getEntityName());
+            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getNameForScoreboard())) {
+                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getNameForScoreboard());
                 if (setPositions[0] != null && setPositions[1] != null) {
                     ResetEntity resetEntity = ModEntities.RESET_ENTITY.spawn(serverWorld, setPositions[0], SpawnReason.NATURAL);
                     resetEntity.setCorner1(setPositions[0]);
@@ -199,8 +199,8 @@ public class ZoneManagementCommands {
         DataManager.MapData pairedMap = DataManager.getMap(name);
         if (pairedMap != null) {
             ServerWorld serverWorld = context.getSource().getWorld();
-            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getEntityName())) {
-                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getEntityName());
+            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getNameForScoreboard())) {
+                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getNameForScoreboard());
                 if (setPositions[0] != null && setPositions[1] != null) {
                     StartEntity startEntity = ModEntities.START_ENTITY.spawn(serverWorld, setPositions[0], SpawnReason.NATURAL);
                     startEntity.setCorner1(setPositions[0]);
@@ -228,8 +228,8 @@ public class ZoneManagementCommands {
         DataManager.MapData pairedMap = DataManager.getMap(name);
         if (pairedMap != null) {
             ServerWorld serverWorld = context.getSource().getWorld();
-            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getEntityName())) {
-                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getEntityName());
+            if (BoundsStickItem.playerPositions.containsKey(serverPlayerEntity.getNameForScoreboard())) {
+                BlockPos[] setPositions = BoundsStickItem.playerPositions.get(serverPlayerEntity.getNameForScoreboard());
                 if (setPositions[0] != null && setPositions[1] != null) {
                     EndEntity endEntity = ModEntities.END_ENTITY.spawn(serverWorld, setPositions[0], SpawnReason.NATURAL);
                     endEntity.setCorner1(setPositions[0]);

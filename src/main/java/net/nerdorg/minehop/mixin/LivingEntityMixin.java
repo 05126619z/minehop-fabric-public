@@ -89,7 +89,7 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "teleport", at = @At("HEAD"))
     public void onTeleport(double x, double y, double z, boolean particleEffects, CallbackInfoReturnable<Boolean> cir) {
-        HNSManager.taggedMap.remove(this.getEntityName());
+        HNSManager.taggedMap.remove(this.getNameForScoreboard());
     }
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
@@ -101,7 +101,7 @@ public abstract class LivingEntityMixin extends Entity {
                 if (mapData != null && mapData.hns) {
                     BlockState belowState = this.getWorld().getBlockState(this.getBlockPos().offset(Direction.DOWN, 1));
                     if (amount >= 20 && !(belowState.getBlock() instanceof StairsBlock)) {
-                        HNSManager.taggedMap.put(player.getEntityName(), true);
+                        HNSManager.taggedMap.put(player.getNameForScoreboard(), true);
                         Logger.logFailure(player, "You were tagged because you fell too far. You can break your fall by landing on stairs.");
                     }
                 }
@@ -190,12 +190,12 @@ public abstract class LivingEntityMixin extends Entity {
         //
         boolean fullGrounded = this.wasOnGround && this.isOnGround(); //Allows for no friction 1-frame upon landing.
         if (fullGrounded) {
-            if (!Minehop.groundedList.contains(this.getEntityName())) {
-                Minehop.groundedList.add(this.getEntityName());
+            if (!Minehop.groundedList.contains(this.getNameForScoreboard())) {
+                Minehop.groundedList.add(this.getNameForScoreboard());
             }
         }
         else {
-            Minehop.groundedList.remove(this.getEntityName());
+            Minehop.groundedList.remove(this.getNameForScoreboard());
         }
         if (fullGrounded) {
             Vec3d velFin = this.getVelocity();
@@ -236,15 +236,15 @@ public abstract class LivingEntityMixin extends Entity {
 //        this.setYaw((float) perfectAngle);
 
         if (this.isOnGround()) {
-            if (Minehop.efficiencyListMap.containsKey(this.getEntityName())) {
-                List<Double> efficiencyList = Minehop.efficiencyListMap.get(this.getEntityName());
+            if (Minehop.efficiencyListMap.containsKey(this.getNameForScoreboard())) {
+                List<Double> efficiencyList = Minehop.efficiencyListMap.get(this.getNameForScoreboard());
                 if (efficiencyList != null && efficiencyList.size() > 0) {
                     double averageEfficiency = efficiencyList.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN);
                     Entity localEntity = this.getWorld().getEntityById(this.getId());
                     if (localEntity instanceof PlayerEntity playerEntity) {
-                        Minehop.efficiencyUpdateMap.put(playerEntity.getEntityName(), averageEfficiency);
+                        Minehop.efficiencyUpdateMap.put(playerEntity.getNameForScoreboard(), averageEfficiency);
                     }
-                    Minehop.efficiencyListMap.put(this.getEntityName(), new ArrayList<>());
+                    Minehop.efficiencyListMap.put(this.getNameForScoreboard(), new ArrayList<>());
                 }
             }
         }
@@ -262,7 +262,10 @@ public abstract class LivingEntityMixin extends Entity {
                 maxVel = (float) (this.movementSpeed * config.movement.speed_mul);
             } else {
                 double velVal = this.getVelocity().horizontalLength();
-                maxVel = (float) (config.movement.sv_maxairspeed * ((velVal * config.movement.speed_coefficient) / velVal));
+                if (velVal < 0 || velVal > 0)
+                    maxVel = (float) (config.movement.sv_maxairspeed * ((velVal * config.movement.speed_coefficient) / velVal));
+                else
+                    maxVel = (float) (config.movement.sv_maxairspeed);
 
                 angleBetween = Math.acos(accelVec.normalize().dotProduct(moveDir.normalize()));
 
@@ -295,15 +298,15 @@ public abstract class LivingEntityMixin extends Entity {
                 double gaugeValue = sI < 0 || fI < 0 ? (normalYaw - perfectAngle) : (perfectAngle - normalYaw);
                 gaugeValue = normalizeAngle(gaugeValue) * 2;
 
-                List<Double> gaugeList = Minehop.gaugeListMap.containsKey(this.getEntityName()) ? Minehop.gaugeListMap.get(this.getEntityName()) : new ArrayList<>();
+                List<Double> gaugeList = Minehop.gaugeListMap.containsKey(this.getNameForScoreboard()) ? Minehop.gaugeListMap.get(this.getNameForScoreboard()) : new ArrayList<>();
                 gaugeList.add(gaugeValue);
-                Minehop.gaugeListMap.put(this.getEntityName(), gaugeList);
+                Minehop.gaugeListMap.put(this.getNameForScoreboard(), gaugeList);
 
                 double strafeEfficiency = MathHelper.clamp((((v - nogainv) / (maxgainv - nogainv)) * 100), 0D, 100D);
-                Minehop.efficiencyMap.put(this.getEntityName(), strafeEfficiency);
-                List<Double> efficiencyList = Minehop.efficiencyListMap.containsKey(this.getEntityName()) ? Minehop.efficiencyListMap.get(this.getEntityName()) : new ArrayList<>();
+                Minehop.efficiencyMap.put(this.getNameForScoreboard(), strafeEfficiency);
+                List<Double> efficiencyList = Minehop.efficiencyListMap.containsKey(this.getNameForScoreboard()) ? Minehop.efficiencyListMap.get(this.getNameForScoreboard()) : new ArrayList<>();
                 efficiencyList.add(strafeEfficiency);
-                Minehop.efficiencyListMap.put(this.getEntityName(), efficiencyList);
+                Minehop.efficiencyListMap.put(this.getNameForScoreboard(), efficiencyList);
             }
 
             this.setVelocity(new Vec3d(newHorizontalVelocity.getX(), newVelocity.getY(), newHorizontalVelocity.getZ()));
@@ -491,7 +494,7 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
     void jump(CallbackInfo ci) {
         MinehopConfig config;
-        double speedCap = 1000000;
+
         if (Minehop.override_config && Minehop.receivedConfig) {
             config = new MinehopConfig();
             config.movement.sv_friction = Minehop.o_sv_friction;
@@ -503,7 +506,6 @@ public abstract class LivingEntityMixin extends Entity {
             config.movement.speed_coefficient = Minehop.o_speed_coefficient;
             config.enabled = Minehop.o_enabled;
             config.fall_damage = Minehop.o_fall_damage;
-            speedCap = Minehop.o_speed_cap;
         }
         else {
             config = ConfigWrapper.config;

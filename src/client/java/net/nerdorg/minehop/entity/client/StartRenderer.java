@@ -16,7 +16,6 @@ import net.nerdorg.minehop.entity.custom.StartEntity;
 import net.nerdorg.minehop.networking.ClientPacketHandler;
 import net.nerdorg.minehop.render.RenderUtil;
 import org.joml.Vector3f;
-import com.mojang.datafixers.util.Pair;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.util.ZoneUtil;
 
@@ -51,28 +50,10 @@ public class StartRenderer extends MobEntityRenderer<StartEntity, StartModel> {
         BlockPos corner2 = startEntity.getCorner2();
         if (corner1 != null && corner2 != null) {
             Box colliderBox = new Box(new Vec3d(corner1.getX(), corner1.getY(), corner1.getZ()), new Vec3d(corner2.getX(), corner2.getY(), corner2.getZ()));
-            if (!client.player.isCreative() && !client.player.isSpectator() && (Minehop.groundedList.contains(client.player.getEntityName()))) {
+            if (!client.player.isCreative() && !client.player.isSpectator() && (Minehop.groundedList.contains(client.player.getNameForScoreboard()))) {
                 if (colliderBox.contains(client.player.getPos())) {
                     MinehopClient.startTime = System.nanoTime();
                     MinehopClient.lastSendTime = 0;
-                    boolean changed = false;
-                    for (Pair<String, String> entry : DataManager.currentMapPlayers) {
-                        if (entry.getFirst().equals(client.player.getUuidAsString())) {
-                            DataManager.currentMapPlayers.remove(entry);
-                            DataManager.currentMapPlayers.add(new Pair<>(
-                                    client.player.getUuidAsString(),
-                                    startEntity.getPairedMap()
-                            ));
-                            changed = true;
-                            break;
-                        }
-                    }
-                    if (!changed) {
-                        DataManager.currentMapPlayers.add(new Pair<>(
-                                client.player.getUuidAsString(),
-                                startEntity.getPairedMap()
-                        ));
-                    }
                 }
             }
 

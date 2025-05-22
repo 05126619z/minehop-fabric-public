@@ -35,23 +35,25 @@ public abstract class InGameHudMixin {
 
     @Shadow @Final private MinecraftClient client;
 
-    @Shadow @Final private static Identifier HOTBAR_ATTACK_INDICATOR_BACKGROUND_TEXTURE;
-
-    @Shadow @Final private static Identifier HOTBAR_ATTACK_INDICATOR_PROGRESS_TEXTURE;
-
-    @Shadow @Final private static Identifier HOTBAR_OFFHAND_RIGHT_TEXTURE;
-
-    @Shadow @Final private static Identifier HOTBAR_OFFHAND_LEFT_TEXTURE;
+    @Shadow @Final private static Identifier HOTBAR_TEXTURE;
 
     @Shadow @Final private static Identifier HOTBAR_SELECTION_TEXTURE;
 
-    @Shadow @Final private static Identifier HOTBAR_TEXTURE;
+    @Shadow @Final private static Identifier HOTBAR_OFFHAND_LEFT_TEXTURE;
+
+    @Shadow @Final private static Identifier HOTBAR_OFFHAND_RIGHT_TEXTURE;
+
+    @Shadow @Final private static Identifier HOTBAR_ATTACK_INDICATOR_BACKGROUND_TEXTURE;
+
+    @Shadow @Final private static Identifier HOTBAR_ATTACK_INDICATOR_PROGRESS_TEXTURE;
 
     @Inject(at = @At("TAIL"), method = "render(Lnet/minecraft/client/gui/DrawContext;F)V")
     private void renderSqueedometerHud(DrawContext context, float tickDelta, CallbackInfo info) {
         MinehopConfig config;
         if (Minehop.override_config) {
             config = new MinehopConfig();
+            config.enabled = Minehop.o_enabled;
+            config.fall_damage = Minehop.o_fall_damage;
             config.movement.sv_friction = Minehop.o_sv_friction;
             config.movement.sv_accelerate = Minehop.o_sv_accelerate;
             config.movement.sv_airaccelerate = Minehop.o_sv_airaccelerate;
@@ -72,12 +74,14 @@ public abstract class InGameHudMixin {
             config = ConfigWrapper.config;
         }
 
-        if (config.jHud.speedHud.show_current_speed) {
+        if (config.jHud.speedHud.show_current_speed && config.enabled) {
             MinehopClient.squeedometerHud.drawMain(context, tickDelta, config);
         }
-        MinehopClient.squeedometerHud.drawJHUD(context, config);
-        if (MinehopClient.spectatorList.size() > 0) {
-            MinehopClient.squeedometerHud.drawSpectators(context, tickDelta);
+        if (config.enabled) {
+            MinehopClient.squeedometerHud.drawJHUD(context, config);
+            if (MinehopClient.spectatorList.size() > 0) {
+                MinehopClient.squeedometerHud.drawSpectators(context, tickDelta);
+            }
         }
 
     }

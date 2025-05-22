@@ -24,7 +24,6 @@ import java.util.List;
 public class StartEntity extends Zone {
     private BlockPos corner1;
     private BlockPos corner2;
-    private String paired_map = "";
 
     public StartEntity(EntityType<? extends MobEntity> entityType, World world) {
         super(entityType, world);
@@ -43,7 +42,6 @@ public class StartEntity extends Zone {
             nbt.putInt("Corner2Y", corner2.getY());
             nbt.putInt("Corner2Z", corner2.getZ());
         }
-        nbt.putString("map", paired_map);
     }
 
     @Override
@@ -58,12 +56,6 @@ public class StartEntity extends Zone {
         int y2 = nbt.getInt("Corner2Y");
         int z2 = nbt.getInt("Corner2Z");
         corner2 = new BlockPos(x2, y2, z2);
-
-        paired_map = nbt.getString("map");
-    }
-
-    public void setPairedMap(String paired_map) {
-        this.paired_map = paired_map;
     }
 
     public void setCorner1(BlockPos corner1) {
@@ -72,10 +64,6 @@ public class StartEntity extends Zone {
 
     public void setCorner2(BlockPos corner2) {
         this.corner2 = corner2;
-    }
-
-    public String getPairedMap() {
-        return paired_map;
     }
 
     public BlockPos getCorner1() {
@@ -99,30 +87,31 @@ public class StartEntity extends Zone {
                     this.teleport(avgX, avgY, avgZ);
                 }
                 for (ServerPlayerEntity worldPlayer : serverWorld.getPlayers()) {
-                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.paired_map, 0);
+                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.getPairedMap(), 0);
                 }
             }
             if (this.corner1 != null && this.corner2 != null) {
-                DataManager.MapData pairedMap = DataManager.getMap(this.paired_map);
+                DataManager.MapData pairedMap = DataManager.getMap(this.getPairedMap());
                 if (pairedMap != null) {
                     Box colliderBox = new Box(new Vec3d(this.corner1.getX(), this.corner1.getY(), this.corner1.getZ()), new Vec3d(this.corner2.getX(), this.corner2.getY(), this.corner2.getZ()));
                     List<ServerPlayerEntity> players = serverWorld.getPlayers();
                     for (ServerPlayerEntity player : players) {
-                        if (!player.isCreative() && !player.isSpectator() && (Minehop.groundedList.contains(player.getEntityName()))) {
+                        if (!player.isCreative() && !player.isSpectator() && (Minehop.groundedList.contains(player.getNameForScoreboard()))) {
                             if (colliderBox.contains(player.getPos())) {
+                                System.out.println("Bruh");
                                 HashMap<String, Long> informationMap = new HashMap<>();
-                                informationMap.put(this.paired_map, System.nanoTime());
-                                if (ReplayEvents.replayEntryMap.containsKey(player.getEntityName())) {
-                                    ReplayEvents.replayEntryMap.remove(player.getEntityName());
+                                informationMap.put(this.getPairedMap(), System.nanoTime());
+                                if (ReplayEvents.replayEntryMap.containsKey(player.getNameForScoreboard())) {
+                                    ReplayEvents.replayEntryMap.remove(player.getNameForScoreboard());
                                 }
-                                Minehop.timerManager.put(player.getEntityName(), informationMap);
+                                Minehop.timerManager.put(player.getNameForScoreboard(), informationMap);
                                 Minehop.playerMapLocation.put(player.getUuidAsString(), this);
                             }
                         }
                         else {
                             if (player.isCreative() || player.isSpectator()) {
-                                if (Minehop.timerManager.containsKey(player.getEntityName())) {
-                                    Minehop.timerManager.remove(player.getEntityName());
+                                if (Minehop.timerManager.containsKey(player.getNameForScoreboard())) {
+                                    Minehop.timerManager.remove(player.getNameForScoreboard());
                                 }
                             }
                         }
