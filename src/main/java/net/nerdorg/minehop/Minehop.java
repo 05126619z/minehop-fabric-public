@@ -97,6 +97,7 @@ public class Minehop implements ModInitializer {
 
 		MotdManager.register();
 
+		FabricDefaultAttributeRegistry.register(ModEntities.GAMEMODE_ENTITY, ResetEntity.createResetEntityAttributes());
 		FabricDefaultAttributeRegistry.register(ModEntities.RESET_ENTITY, ResetEntity.createResetEntityAttributes());
 		FabricDefaultAttributeRegistry.register(ModEntities.START_ENTITY, ResetEntity.createResetEntityAttributes());
 		FabricDefaultAttributeRegistry.register(ModEntities.END_ENTITY, ResetEntity.createResetEntityAttributes());

@@ -5,6 +5,8 @@ import net.minecraft.util.Identifier;
 import net.nerdorg.minehop.Minehop;
 
 public class ModModelLayers {
+    public static final EntityModelLayer GAMEMODE_ENTITY =
+            new EntityModelLayer(new Identifier(Minehop.MOD_ID, "gamemode_entity"), "main");
     public static final EntityModelLayer RESET_ENTITY =
             new EntityModelLayer(new Identifier(Minehop.MOD_ID, "reset_entity"), "main");
     public static final EntityModelLayer START_ENTITY =
