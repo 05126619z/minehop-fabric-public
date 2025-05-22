@@ -2,7 +2,6 @@
   "minehop.discord": "Discord",
 
   "block.minehop.boost_pad": "Boost Pad",
-  "item.minehop.boost_pad": "Boost Pad",
 
   "item.minehop.bounds_stick": "Bounds Stick",
   "item.minehop.instagib_gun": "Instagib Coil",
@@ -42,12 +41,12 @@
   "text.autoconfig.minehop.option.jHud.gaugeHud.gauge_x_offset": "Gauge X Offset (The values are percentages, 50 is centered).",
   "text.autoconfig.minehop.option.jHud.gaugeHud.gauge_y_offset": "Gauge Y Offset (The values are percentages, 50 is centered).",
 
-  "text.autoconfig.minehop.option.enabled": "Enabled",
-  "text.autoconfig.minehop.option.fall_damage": " Fall Damage",
+  "text.autoconfig.minehop.option.enabled": "Toggle The Movement Being Enabled",
+  "text.autoconfig.minehop.option.fall_damage": "Toggle If You Take Fall Damage Or Not",
+  "text.autoconfig.minehop.option.nulls": "Nulls (Uses the last key pressed as your sideways movement input instead of combining them)",
   "text.autoconfig.minehop.option.hideSelf": " Hide Self",
   "text.autoconfig.minehop.option.hideOthers": " Hide Others",
   "text.autoconfig.minehop.option.hideReplay": " Hide Replays",
-  "text.autoconfig.minehop.option.nulls": "Nulls (Uses the last key pressed as your sideways movement input instead of combining them)",
 
   "text.autoconfig.minehop.option.movement.sv_friction": "Ground Friction (sv_friction)",
   "text.autoconfig.minehop.option.movement.sv_accelerate": "Ground Acceleration (sv_accelerate)",
@@ -55,6 +54,7 @@
   "text.autoconfig.minehop.option.movement.sv_maxairspeed": "Max Gain (sv_maxairspeed)",
   "text.autoconfig.minehop.option.movement.speed_mul": "Speed Multiplier",
   "text.autoconfig.minehop.option.movement.sv_gravity": "Gravity",
+  "text.autoconfig.minehop.option.movement.speed_coefficient": "Speed Coefficient",
 
   "text.autoconfig.minehop.option.help_command": "Enable Minehop /help Command",
   "text.autoconfig.minehop.option.minehop_motd": "Enable Minehop Server MOTD",

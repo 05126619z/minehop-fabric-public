@@ -6,8 +6,8 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 @Config(name = "minehop")
 public class MinehopConfig implements ConfigData {
-    public static boolean enabled = true;
-    public boolean fall_damage = true;
+    public boolean enabled = true;
+    public boolean fall_damage = false;
     public boolean hideSelf = false;
     public boolean hideOthers = false;
     public boolean hideReplay = false;
@@ -34,6 +34,7 @@ public class MinehopConfig implements ConfigData {
         public double sv_maxairspeed = 0.02325;
         public double speed_mul = 2.2;
         public double sv_gravity = 0.066;
+        public double speed_coefficient = 1;
     }
 
     public static class JHud {

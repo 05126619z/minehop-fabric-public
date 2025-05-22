@@ -65,24 +65,6 @@ public class StartRenderer extends MobEntityRenderer<StartEntity, StartEntityRen
                 if (colliderBox.contains(client.player.getPos())) {
                     MinehopClient.startTime = System.nanoTime();
                     MinehopClient.lastSendTime = 0;
-                    boolean changed = false;
-                    for (Pair<String, String> entry : DataManager.currentMapPlayers) {
-                        if (entry.getFirst().equals(client.player.getUuidAsString())) {
-                            DataManager.currentMapPlayers.remove(entry);
-                            DataManager.currentMapPlayers.add(new Pair<>(
-                                    client.player.getUuidAsString(),
-                                    renderState.startEntity.getPairedMap()
-                            ));
-                            changed = true;
-                            break;
-                        }
-                    }
-                    if (!changed) {
-                        DataManager.currentMapPlayers.add(new Pair<>(
-                                client.player.getUuidAsString(),
-                                renderState.startEntity.getPairedMap()
-                        ));
-                    }
                 }
             }
 

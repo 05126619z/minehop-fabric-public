@@ -69,12 +69,15 @@ public abstract class InGameHudMixin {
         MinehopConfig config;
         if (Minehop.override_config) {
             config = new MinehopConfig();
+            config.enabled = Minehop.o_enabled;
+            config.fall_damage = Minehop.o_fall_damage;
             config.movement.sv_friction = Minehop.o_sv_friction;
             config.movement.sv_accelerate = Minehop.o_sv_accelerate;
             config.movement.sv_airaccelerate = Minehop.o_sv_airaccelerate;
             config.movement.sv_maxairspeed = Minehop.o_sv_maxairspeed;
             config.movement.speed_mul = Minehop.o_speed_mul;
             config.movement.sv_gravity = Minehop.o_sv_gravity;
+            config.movement.speed_coefficient = Minehop.o_speed_coefficient;
             config.nulls = ConfigWrapper.config.nulls;
             config.jHud.ssjHud = ConfigWrapper.config.jHud.ssjHud;
             config.jHud.efficiencyHud = ConfigWrapper.config.jHud.efficiencyHud;
@@ -86,14 +89,15 @@ public abstract class InGameHudMixin {
             config = ConfigWrapper.config;
         }
 
-        if (config.jHud.speedHud.show_current_speed) {
+        if (config.jHud.speedHud.show_current_speed && config.enabled) {
             MinehopClient.squeedometerHud.drawMain(context, tickCounter.getTickDelta(true), config);
         }
-        MinehopClient.squeedometerHud.drawJHUD(context, config);
-        if (MinehopClient.spectatorList.size() > 0) {
-            MinehopClient.squeedometerHud.drawSpectators(context, tickCounter.getTickDelta(true));
+        if (config.enabled) {
+            MinehopClient.squeedometerHud.drawJHUD(context, config);
+            if (!MinehopClient.spectatorList.isEmpty()) {
+                MinehopClient.squeedometerHud.drawSpectators(context, tickCounter.getTickDelta(true));
+            }
         }
-
     }
 
     @Inject(at = @At("HEAD"), method = "renderHealthBar", cancellable = true)

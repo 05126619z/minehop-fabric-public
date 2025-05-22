@@ -51,8 +51,11 @@ public class ClientPacketHandler {
                 Minehop.o_sv_maxairspeed = payload.sv_maxairspeed();
                 Minehop.o_speed_mul = payload.speed_mul();
                 Minehop.o_sv_gravity = payload.sv_gravity();
+                Minehop.o_speed_coefficient = payload.speedCoef();
                 Minehop.o_speed_cap = payload.speedCap();
                 Minehop.o_hns = payload.isHNS();
+                Minehop.o_enabled = payload.isEnabled();
+                Minehop.o_fall_damage = payload.fallDamage();
 
                 Minehop.receivedConfig = true;
             });

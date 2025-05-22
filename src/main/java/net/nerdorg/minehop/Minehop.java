@@ -39,8 +39,8 @@ public class Minehop implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
     public static final Logger LOGGER = LoggerFactory.getLogger("minehop");
     public static final String MOD_ID = "minehop";
-    public static final int MOD_VERSION = 1013;
-    public static final String MOD_VERSION_STRING = "1.0.131";
+    public static final int MOD_VERSION = 1014;
+    public static final String MOD_VERSION_STRING = "1.0.14";
 
 	public static boolean override_config = false;
 	public static double o_sv_friction = 0;
@@ -50,7 +50,10 @@ public class Minehop implements ModInitializer {
 	public static double o_speed_mul = 0;
 	public static double o_sv_gravity = 0;
 	public static double o_speed_cap = 0;
+	public static double o_speed_coefficient = 0;
 	public static boolean o_hns = false;
+	public static boolean o_enabled = true;
+	public static boolean o_fall_damage = true;
 
 	public static boolean receivedConfig = false;
 
@@ -76,46 +79,7 @@ public class Minehop implements ModInitializer {
 		AutoConfig.register(MinehopConfig.class, JanksonConfigSerializer::new);
 		ConfigWrapper.loadConfig();
 
-		// client to server
-		PayloadTypeRegistry.playC2S().register(AntiCheatPayload.ID, AntiCheatPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(ConfigSyncPayload.ID, ConfigSyncPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(CSpecEfficiencyPayload.ID, CSpecEfficiencyPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(HandshakeIDPayload.ID, HandshakeIDPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(MapFinishPayload.ID, MapFinishPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(OpenMapScreenPayload.ID, OpenMapScreenPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(OtherVTogglePayload.ID, OtherVTogglePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(ReplayVTogglePayload.ID, ReplayVTogglePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SelfVTogglePayload.ID, SelfVTogglePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SendEfficiencyPayload.ID, SendEfficiencyPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SendMapPayload.ID, SendMapPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SendPersonalRecordPayload.ID, SendPersonalRecordPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SendRecordPayload.ID, SendRecordPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SendSpectatorsPayload.ID, SendSpectatorsPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SendTimePayload.ID, SendTimePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SetCheaterPayload.ID, SetCheaterPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(SSpecEfficiencyPayload.ID, SSpecEfficiencyPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(UpdatePowerPayload.ID, UpdatePowerPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(ZoneSyncIDPayload.ID, ZoneSyncIDPayload.CODEC);
-		// server to client
-		PayloadTypeRegistry.playS2C().register(AntiCheatPayload.ID, AntiCheatPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(ConfigSyncPayload.ID, ConfigSyncPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(CSpecEfficiencyPayload.ID, CSpecEfficiencyPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(HandshakeIDPayload.ID, HandshakeIDPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(MapFinishPayload.ID, MapFinishPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(OpenMapScreenPayload.ID, OpenMapScreenPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(OtherVTogglePayload.ID, OtherVTogglePayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(ReplayVTogglePayload.ID, ReplayVTogglePayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SelfVTogglePayload.ID, SelfVTogglePayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SendEfficiencyPayload.ID, SendEfficiencyPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SendMapPayload.ID, SendMapPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SendPersonalRecordPayload.ID, SendPersonalRecordPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SendRecordPayload.ID, SendRecordPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SendSpectatorsPayload.ID, SendSpectatorsPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SendTimePayload.ID, SendTimePayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SetCheaterPayload.ID, SetCheaterPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(SSpecEfficiencyPayload.ID, SSpecEfficiencyPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(UpdatePowerPayload.ID, UpdatePowerPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(ZoneSyncIDPayload.ID, ZoneSyncIDPayload.CODEC);
+		PacketHandler.register();
 
 		ServerPlayConnectionEvents.INIT.register(((serverPlayNetworkHandler, minecraftServer) -> {
 			PacketHandler.registerReceivers();

@@ -240,7 +240,7 @@ public class HNSManager {
                             tagged = taggedMap.get(playerEntity.getNameForScoreboard());
                         }
                         Logger.logSuccess(playerEntity, "HNS round over, " + (tagged ? "you got tagged :(" : "you survived as a hider!"));
-                        playerEntity.requestTeleport(targetPos.getX(), targetPos.getY(), targetPos.getZ());
+                        playerEntity.teleportTo(ZoneUtil.makeTeleportTarget(foundWorld, targetPos, (float) rotPos.getY(), (float) rotPos.getX()));
                     }
                     taggedMap.remove(playerEntity.getNameForScoreboard());
                 }

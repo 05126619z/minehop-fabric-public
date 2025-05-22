@@ -21,6 +21,7 @@ import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.networking.PacketHandler;
 import net.nerdorg.minehop.replays.ReplayManager;
 import net.nerdorg.minehop.util.Logger;
+import net.nerdorg.minehop.util.ZoneUtil;
 import org.joml.Math;
 
 import java.util.List;
@@ -156,7 +157,7 @@ public class ReplayEntity extends MobEntity {
                                     if (!spectatorPlayer.isCreative()) {
                                         spectatorPlayer.getInventory().clear();
                                     }
-                                    spectatorPlayer.requestTeleport(this.getX(), this.getY(), this.getZ());
+                                    spectatorPlayer.teleportTo(ZoneUtil.makeTeleportTarget((ServerWorld) this.getWorld(), this.getPos(), this.getYaw(), this.getPitch()));
                                     spectatorPlayer.setCameraEntity(this);
                                     PacketHandler.sendSpecEfficiency(spectatorPlayer, last_jump_speed, (int) jump_count, efficiency);
                                     Logger.logActionBar(spectatorPlayer, "End Time: " + String.format("%.5f", replay.time));

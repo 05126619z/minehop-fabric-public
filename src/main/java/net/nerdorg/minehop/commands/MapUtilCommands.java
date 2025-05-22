@@ -320,7 +320,7 @@ public class MapUtilCommands {
                         if (!serverPlayerEntity.isCreative()) {
                             serverPlayerEntity.getInventory().clear();
                         }
-                        serverPlayerEntity.requestTeleport(currentMapData.x, currentMapData.y, currentMapData.z);
+                        serverPlayerEntity.teleportTo(ZoneUtil.makeTeleportTarget(foundWorld, new Vec3d(currentMapData.x, currentMapData.y, currentMapData.z), (float) currentMapData.yrot, (float) currentMapData.xrot));
                         if (SpectateCommands.spectatorList.containsKey(serverPlayerEntity.getNameForScoreboard())) {
                             List<String> spectators = SpectateCommands.spectatorList.get(serverPlayerEntity.getNameForScoreboard());
                             for (String spectator : spectators) {
@@ -329,7 +329,7 @@ public class MapUtilCommands {
                                     if (!spectatorPlayer.isCreative()) {
                                         spectatorPlayer.getInventory().clear();
                                     }
-                                    spectatorPlayer.requestTeleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
+                                    spectatorPlayer.teleportTo(ZoneUtil.makeTeleportTarget(serverPlayerEntity.getServerWorld(), new Vec3d(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ()), serverPlayerEntity.getYaw(), serverPlayerEntity.getPitch()));
                                     spectatorPlayer.setCameraEntity(serverPlayerEntity);
                                 }
                             }
@@ -397,7 +397,7 @@ public class MapUtilCommands {
                     if (!serverPlayerEntity.isCreative()) {
                         serverPlayerEntity.getInventory().clear();
                     }
-                    serverPlayerEntity.requestTeleport(targetPos.getX(), targetPos.getY(), targetPos.getZ());
+                    serverPlayerEntity.teleportTo(ZoneUtil.makeTeleportTarget(foundWorld, targetPos, (float) rotPos.getY(), (float) rotPos.getX()));
                     if (SpectateCommands.spectatorList.containsKey(serverPlayerEntity.getNameForScoreboard())) {
                         List<String> spectators = SpectateCommands.spectatorList.get(serverPlayerEntity.getNameForScoreboard());
                         for (String spectator : spectators) {
@@ -406,7 +406,7 @@ public class MapUtilCommands {
                                 if (!spectatorPlayer.isCreative()) {
                                     spectatorPlayer.getInventory().clear();
                                 }
-                                spectatorPlayer.requestTeleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
+                                spectatorPlayer.teleportTo(ZoneUtil.makeTeleportTarget(serverPlayerEntity.getServerWorld(), new Vec3d(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ()), serverPlayerEntity.getYaw(), serverPlayerEntity.getPitch()));
                                 spectatorPlayer.setCameraEntity(serverPlayerEntity);
                             }
                         }

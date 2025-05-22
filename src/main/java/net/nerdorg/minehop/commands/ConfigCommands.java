@@ -44,6 +44,26 @@ public class ConfigCommands {
                         })
                     )
                     .then(LiteralArgumentBuilder.<ServerCommandSource>literal("set")
+                        .then(LiteralArgumentBuilder.<ServerCommandSource>literal("toggle_fall_dmg")
+                                .executes(context -> {
+                                    handleToggleFallDamage(context);
+                                    return Command.SINGLE_SUCCESS;
+                                })
+                        )
+                        .then(LiteralArgumentBuilder.<ServerCommandSource>literal("toggle_enabled")
+                                .executes(context -> {
+                                    handleToggleEnabled(context);
+                                    return Command.SINGLE_SUCCESS;
+                                })
+                        )
+                        .then(LiteralArgumentBuilder.<ServerCommandSource>literal("speed_coefficient")
+                                .then(RequiredArgumentBuilder.<ServerCommandSource, Double>argument("speed_coefficient", DoubleArgumentType.doubleArg())
+                                        .executes(context -> {
+                                            handleSetSpeedCoeff(context);
+                                            return Command.SINGLE_SUCCESS;
+                                        })
+                                )
+                        )
                         .then(LiteralArgumentBuilder.<ServerCommandSource>literal("sv_friction")
                                 .then(RequiredArgumentBuilder.<ServerCommandSource, Double>argument("sv_friction", DoubleArgumentType.doubleArg())
                                         .executes(context -> {
@@ -95,6 +115,39 @@ public class ConfigCommands {
                     )
                 )
             ));
+    }
+
+    private static void handleToggleFallDamage(CommandContext<ServerCommandSource> context) {
+        ServerPlayerEntity serverPlayerEntity = context.getSource().getPlayer();
+        MinehopConfig config = ConfigWrapper.config;
+
+        config.fall_damage = !config.fall_damage;
+
+        ConfigWrapper.saveConfig(config);
+
+        Logger.logSuccess(serverPlayerEntity, "Set fall damage to " + config.fall_damage);
+    }
+
+    private static void handleToggleEnabled(CommandContext<ServerCommandSource> context) {
+        ServerPlayerEntity serverPlayerEntity = context.getSource().getPlayer();
+        MinehopConfig config = ConfigWrapper.config;
+
+        config.enabled = !config.enabled;
+
+        ConfigWrapper.saveConfig(config);
+
+        Logger.logSuccess(serverPlayerEntity, "Set enabled to " + config.enabled);
+    }
+
+    private static void handleSetSpeedCoeff(CommandContext<ServerCommandSource> context) {
+        ServerPlayerEntity serverPlayerEntity = context.getSource().getPlayer();
+        MinehopConfig config = ConfigWrapper.config;
+
+        config.movement.speed_coefficient = DoubleArgumentType.getDouble(context, "speed_coefficient");
+
+        ConfigWrapper.saveConfig(config);
+
+        Logger.logSuccess(serverPlayerEntity, "Set speed_coefficient to " + config.movement.speed_coefficient);
     }
 
     private static void handleSetFriction(CommandContext<ServerCommandSource> context) {

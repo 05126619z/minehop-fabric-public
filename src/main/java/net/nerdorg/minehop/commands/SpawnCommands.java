@@ -14,6 +14,7 @@ import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.entity.ModEntities;
@@ -23,6 +24,7 @@ import net.nerdorg.minehop.entity.custom.StartEntity;
 import net.nerdorg.minehop.item.custom.BoundsStickItem;
 import net.nerdorg.minehop.networking.PacketHandler;
 import net.nerdorg.minehop.util.Logger;
+import net.nerdorg.minehop.util.ZoneUtil;
 
 import java.util.List;
 
@@ -56,22 +58,32 @@ public class SpawnCommands {
                 if (!serverPlayerEntity.isCreative()) {
                     serverPlayerEntity.getInventory().clear();
                 }
-                serverPlayerEntity.requestTeleport(
-                        pairedMap.x,
-                        pairedMap.y,
-                        pairedMap.z
-                );
-                Minehop.timerManager.remove(serverPlayerEntity.getNameForScoreboard());
-                Logger.logSuccess(serverPlayerEntity, "Teleporting to spawn.");
-                if (SpectateCommands.spectatorList.containsKey(serverPlayerEntity.getNameForScoreboard())) {
-                    List<String> spectators = SpectateCommands.spectatorList.get(serverPlayerEntity.getNameForScoreboard());
-                    for (String spectator : spectators) {
-                        ServerPlayerEntity spectatorPlayer = context.getSource().getServer().getPlayerManager().getPlayer(spectator);
-                        if (!spectatorPlayer.isCreative()) {
-                            spectatorPlayer.getInventory().clear();
+                ServerWorld foundWorld = null;
+                for (ServerWorld svrWorld : context.getSource().getServer().getWorlds()) {
+                    if (svrWorld.getRegistryKey().toString().equals(pairedMap.worldKey)) {
+                        foundWorld = svrWorld;
+                        break;
+                    }
+                }
+                if (foundWorld != null) {
+                    serverPlayerEntity.teleportTo(ZoneUtil.makeTeleportTarget(
+                            foundWorld,
+                            new Vec3d(pairedMap.x, pairedMap.y, pairedMap.z),
+                            (float) pairedMap.yrot,
+                            (float) pairedMap.xrot
+                    ));
+                    Minehop.timerManager.remove(serverPlayerEntity.getNameForScoreboard());
+                    Logger.logSuccess(serverPlayerEntity, "Teleporting to spawn.");
+                    if (SpectateCommands.spectatorList.containsKey(serverPlayerEntity.getNameForScoreboard())) {
+                        List<String> spectators = SpectateCommands.spectatorList.get(serverPlayerEntity.getNameForScoreboard());
+                        for (String spectator : spectators) {
+                            ServerPlayerEntity spectatorPlayer = context.getSource().getServer().getPlayerManager().getPlayer(spectator);
+                            if (!spectatorPlayer.isCreative()) {
+                                spectatorPlayer.getInventory().clear();
+                            }
+                            spectatorPlayer.teleportTo(ZoneUtil.makeTeleportTarget(serverPlayerEntity.getServerWorld(), new Vec3d(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ()), serverPlayerEntity.getYaw(), serverPlayerEntity.getPitch()));
+                            spectatorPlayer.setCameraEntity(serverPlayerEntity);
                         }
-                        spectatorPlayer.requestTeleport(serverPlayerEntity.getX(), serverPlayerEntity.getY(), serverPlayerEntity.getZ());
-                        spectatorPlayer.setCameraEntity(serverPlayerEntity);
                     }
                 }
             }
