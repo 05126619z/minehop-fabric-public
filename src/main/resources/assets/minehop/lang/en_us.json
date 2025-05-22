@@ -44,9 +44,9 @@
   "text.autoconfig.minehop.option.enabled": "Toggle The Movement Being Enabled",
   "text.autoconfig.minehop.option.fall_damage": "Toggle If You Take Fall Damage Or Not",
   "text.autoconfig.minehop.option.nulls": "Nulls (Uses the last key pressed as your sideways movement input instead of combining them)",
-  "text.autoconfig.minehop.option.hideSelf": " Hide Self",
-  "text.autoconfig.minehop.option.hideOthers": " Hide Others",
-  "text.autoconfig.minehop.option.hideReplay": " Hide Replays",
+  "text.autoconfig.minehop.option.hideSelf": "Hide Self",
+  "text.autoconfig.minehop.option.hideOthers": "Hide Others",
+  "text.autoconfig.minehop.option.hideReplay": "Hide Replays",
 
   "text.autoconfig.minehop.option.movement.sv_friction": "Ground Friction (sv_friction)",
   "text.autoconfig.minehop.option.movement.sv_accelerate": "Ground Acceleration (sv_accelerate)",
