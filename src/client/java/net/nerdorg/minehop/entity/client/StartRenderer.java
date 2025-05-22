@@ -16,7 +16,6 @@ import net.nerdorg.minehop.entity.custom.StartEntity;
 import net.nerdorg.minehop.networking.ClientPacketHandler;
 import net.nerdorg.minehop.render.RenderUtil;
 import org.joml.Vector3f;
-import com.mojang.datafixers.util.Pair;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.util.ZoneUtil;
 
@@ -55,24 +54,6 @@ public class StartRenderer extends MobEntityRenderer<StartEntity, StartModel> {
                 if (colliderBox.contains(client.player.getPos())) {
                     MinehopClient.startTime = System.nanoTime();
                     MinehopClient.lastSendTime = 0;
-                    boolean changed = false;
-                    for (Pair<String, String> entry : DataManager.currentMapPlayers) {
-                        if (entry.getFirst().equals(client.player.getUuidAsString())) {
-                            DataManager.currentMapPlayers.remove(entry);
-                            DataManager.currentMapPlayers.add(new Pair<>(
-                                    client.player.getUuidAsString(),
-                                    startEntity.getPairedMap()
-                            ));
-                            changed = true;
-                            break;
-                        }
-                    }
-                    if (!changed) {
-                        DataManager.currentMapPlayers.add(new Pair<>(
-                                client.player.getUuidAsString(),
-                                startEntity.getPairedMap()
-                        ));
-                    }
                 }
             }
 

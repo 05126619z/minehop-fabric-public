@@ -33,7 +33,6 @@ public class ResetEntity extends Zone {
     private BlockPos corner1;
     private BlockPos corner2;
     private int check_index;
-    private String paired_map = "";
 
     public ResetEntity(EntityType<? extends MobEntity> entityType, World world) {
         super(entityType, world);
@@ -53,7 +52,6 @@ public class ResetEntity extends Zone {
             nbt.putInt("Corner2Z", corner2.getZ());
         }
         nbt.putInt("check_index", check_index);
-        nbt.putString("map", paired_map);
     }
 
     @Override
@@ -70,15 +68,10 @@ public class ResetEntity extends Zone {
         corner2 = new BlockPos(x2, y2, z2);
 
         check_index = nbt.getInt("check_index");
-        paired_map = nbt.getString("map");
     }
 
     public void setCheckIndex(int check_index) {
         this.check_index = check_index;
-    }
-
-    public void setPairedMap(String paired_map) {
-        this.paired_map = paired_map;
     }
 
     public void setCorner1(BlockPos corner1) {
@@ -91,10 +84,6 @@ public class ResetEntity extends Zone {
 
     public int getCheckIndex() {
         return check_index;
-    }
-
-    public String getPairedMap() {
-        return paired_map;
     }
 
     public BlockPos getCorner1() {
@@ -123,11 +112,11 @@ public class ResetEntity extends Zone {
                     this.teleport(avgX, avgY, avgZ);
                 }
                 for (ServerPlayerEntity worldPlayer : serverWorld.getPlayers()) {
-                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.paired_map, this.check_index);
+                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.getPairedMap(), this.check_index);
                 }
             }
             if (this.corner1 != null && this.corner2 != null) {
-                DataManager.MapData pairedMap = DataManager.getMap(this.paired_map);
+                DataManager.MapData pairedMap = DataManager.getMap(this.getPairedMap());
                 if (pairedMap != null) {
                     Box colliderBox = new Box(new Vec3d(this.corner1.getX(), this.corner1.getY(), this.corner1.getZ()), new Vec3d(this.corner2.getX(), this.corner2.getY(), this.corner2.getZ()));
                     List<ServerPlayerEntity> players = serverWorld.getPlayers();
@@ -142,14 +131,10 @@ public class ResetEntity extends Zone {
                                         Vec3d rotVec3d = pairedMap.checkpointPositions.get(this.check_index - 1).get(1);
                                         targetRot = new Vec2f((float) rotVec3d.getX(), (float) rotVec3d.getY());
                                     } else {
-                                        if (Minehop.timerManager.containsKey(player.getEntityName())) {
-                                            Minehop.timerManager.remove(player.getEntityName());
-                                        }
-                                    }
-                                } else {
-                                    if (Minehop.timerManager.containsKey(player.getEntityName())) {
                                         Minehop.timerManager.remove(player.getEntityName());
                                     }
+                                } else {
+                                    Minehop.timerManager.remove(player.getEntityName());
                                 }
                                 if (!player.isCreative()) {
                                     player.getInventory().clear();
@@ -158,7 +143,7 @@ public class ResetEntity extends Zone {
                                 Zone startZone = null;
                                 for (Entity entity : serverWorld.iterateEntities()) {
                                     if (entity instanceof StartEntity startEntity) {
-                                        if (startEntity.getPairedMap().equals(paired_map)) {
+                                        if (startEntity.getPairedMap().equals(this.getPairedMap())) {
                                             startZone = startEntity;
                                         }
                                     }
@@ -167,12 +152,14 @@ public class ResetEntity extends Zone {
                                 if (startZone != null){
                                     Minehop.playerMapLocation.put(player.getUuidAsString(), startZone);
                                 }
+
                                 player.teleport(serverWorld, targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), targetRot.y, targetRot.x);
                             }
                         }
                     }
                 }
                 else {
+                    System.out.println("Null map");
                     this.kill();
                 }
             }

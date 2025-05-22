@@ -24,6 +24,8 @@ import net.nerdorg.minehop.util.Logger;
 import java.util.List;
 
 public class Zone extends MobEntity {
+    private String paired_map = "";
+
     public Zone(EntityType<? extends MobEntity> entityType, World world) {
         super(entityType, world);
     }
@@ -84,4 +86,24 @@ public class Zone extends MobEntity {
 
     @Override
     public void onPlayerCollision(PlayerEntity player) { }
+
+    @Override
+    public void writeCustomDataToNbt(NbtCompound nbt) {
+        super.writeCustomDataToNbt(nbt);
+        nbt.putString("map", paired_map);
+    }
+
+    @Override
+    public void readCustomDataFromNbt(NbtCompound nbt) {
+        super.readCustomDataFromNbt(nbt);
+        paired_map = nbt.getString("map");
+    }
+
+    public String getPairedMap() {
+        return paired_map;
+    }
+
+    public void setPairedMap(String paired_map) {
+        this.paired_map = paired_map;
+    }
 }

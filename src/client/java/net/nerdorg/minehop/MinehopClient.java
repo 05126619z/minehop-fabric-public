@@ -53,7 +53,7 @@ public class MinehopClient implements ClientModInitializer {
 			ServerList serverList = new ServerList(minecraft);
 			serverList.loadFile();
 			if (!isServerInList(serverList, "play.minehop.net")) {
-				serverList.add(new ServerInfo("§c§l§nOfficial Minehop Server", "play.minehop.net", false), false);
+				serverList.add(new ServerInfo("§c§l§nOfficial Minehop Server", "play.minehop.net", ServerInfo.ServerType.OTHER), false);
 				serverList.swapEntries(0, serverList.size() - 1);
 				serverList.saveFile();
 			}
