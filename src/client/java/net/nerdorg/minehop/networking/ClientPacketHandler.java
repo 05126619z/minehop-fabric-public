@@ -264,16 +264,10 @@ public class ClientPacketHandler {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(AntiCheatPayload.ID, (payload, ctx) -> {
-            System.out.println("Anti Cheat Check");
             MinecraftClient client = ctx.client();
             client.execute(() -> {
                 new Thread(() -> {
-
-                    String[] stringNames = payload.buff().split("~");
-                    stringNames = Arrays.copyOfRange(stringNames, 1, stringNames.length);
-                    String checkResults = ProcessChecker.scanProcessesForKeywords(List.of(stringNames));
-
-                    sendAntiCheatCheck(checkResults);
+                    sendAntiCheatCheck(null);
                 }).start();
             });
         });
