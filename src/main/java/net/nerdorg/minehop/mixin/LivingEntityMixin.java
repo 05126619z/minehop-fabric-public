@@ -262,7 +262,10 @@ public abstract class LivingEntityMixin extends Entity {
                 maxVel = (float) (this.movementSpeed * config.movement.speed_mul);
             } else {
                 double velVal = this.getVelocity().horizontalLength();
-                maxVel = (float) (config.movement.sv_maxairspeed * ((velVal * config.movement.speed_coefficient) / velVal));
+                if (velVal < 0 || velVal > 0)
+                    maxVel = (float) (config.movement.sv_maxairspeed * ((velVal * config.movement.speed_coefficient) / velVal));
+                else
+                    maxVel = (float) (config.movement.sv_maxairspeed);
 
                 angleBetween = Math.acos(accelVec.normalize().dotProduct(moveDir.normalize()));
 
