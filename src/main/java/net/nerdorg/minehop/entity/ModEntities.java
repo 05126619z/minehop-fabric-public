@@ -10,12 +10,15 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.nerdorg.minehop.Minehop;
-import net.nerdorg.minehop.entity.custom.EndEntity;
-import net.nerdorg.minehop.entity.custom.ReplayEntity;
-import net.nerdorg.minehop.entity.custom.ResetEntity;
-import net.nerdorg.minehop.entity.custom.StartEntity;
+import net.nerdorg.minehop.entity.custom.*;
 
 public class ModEntities {
+    public static final EntityType<GamemodeEntity> GAMEMODE_ENTITY = Registry.register(Registries.ENTITY_TYPE,
+            Identifier.of(Minehop.MOD_ID, "gamemode_entity"),
+            FabricEntityTypeBuilder.create(SpawnGroup.MISC, GamemodeEntity::new)
+                    .dimensions(EntityDimensions.fixed(1f, 1f)).build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Minehop.MOD_ID, "gamemode_entity"))));
+
+
     public static final EntityType<ResetEntity> RESET_ENTITY = Registry.register(Registries.ENTITY_TYPE,
             Identifier.of(Minehop.MOD_ID, "reset_entity"),
             FabricEntityTypeBuilder.create(SpawnGroup.MISC, ResetEntity::new)

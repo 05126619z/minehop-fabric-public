@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -26,6 +27,7 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.nerdorg.minehop.Minehop;
 import net.nerdorg.minehop.data.DataManager;
+import net.nerdorg.minehop.entity.ModEntities;
 import net.nerdorg.minehop.entity.custom.*;
 import net.nerdorg.minehop.item.ModItems;
 import net.nerdorg.minehop.networking.PacketHandler;
@@ -375,6 +377,14 @@ public class MapUtilCommands {
                 }
             }
             if (foundWorld != null) {
+                if (tpData.hns || tpData.arena) {
+                    GamemodeEntity gamemodeEntity = ZoneUtil.getGamemodeEntity(tpData.name, foundWorld);
+                    if (gamemodeEntity == null) {
+                        gamemodeEntity = ModEntities.GAMEMODE_ENTITY.spawn(foundWorld, new BlockPos((int) tpData.x, (int) tpData.y, (int) tpData.z), SpawnReason.NATURAL);
+                        gamemodeEntity.setPairedMap(tpData.name);
+                    }
+                    Minehop.playerMapLocation.put(serverPlayerEntity.getUuidAsString(), gamemodeEntity);
+                }
                 Vec3d targetPos = new Vec3d(tpData.x, tpData.y, tpData.z);
                 Vec3d rotPos = new Vec3d(tpData.xrot, tpData.yrot, 0);
                 if (tpData.arena) {

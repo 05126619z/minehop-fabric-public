@@ -44,6 +44,11 @@ public class StartEntity extends Zone {
         }
     }
 
+    public static DefaultAttributeContainer.Builder createResetEntityAttributes() {
+        return MobEntity.createMobAttributes()
+                .add(EntityAttributes.MAX_HEALTH, 1000000);
+    }
+
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);

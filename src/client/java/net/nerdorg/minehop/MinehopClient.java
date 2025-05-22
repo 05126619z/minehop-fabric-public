@@ -72,12 +72,14 @@ public class MinehopClient implements ClientModInitializer {
 		KeyInputHandler.register();
 		JoinEvent.register();
 
+		EntityRendererRegistry.register(ModEntities.GAMEMODE_ENTITY, GamemodeRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.GAMEMODE_ENTITY, GamemodeModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.RESET_ENTITY, ResetRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.RESET_ENTITY, ResetModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.START_ENTITY, StartRenderer::new);
-		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.START_ENTITY, ResetModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.START_ENTITY, StartModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.END_ENTITY, EndRenderer::new);
-		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.END_ENTITY, ResetModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.END_ENTITY, EndModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.REPLAY_ENTITY, ReplayRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.REPLAY_ENTITY, ReplayModel::getTexturedModelData);
 

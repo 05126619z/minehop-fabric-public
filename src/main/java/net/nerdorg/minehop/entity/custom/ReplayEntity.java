@@ -41,6 +41,11 @@ public class ReplayEntity extends MobEntity {
         map_name = nbt.getString("map");
     }
 
+    public static DefaultAttributeContainer.Builder createResetEntityAttributes() {
+        return MobEntity.createMobAttributes()
+                .add(EntityAttributes.MAX_HEALTH, 1000000);
+    }
+
     public ReplayEntity(EntityType<? extends MobEntity> entityType, World world) {
         super(entityType, world);
     }

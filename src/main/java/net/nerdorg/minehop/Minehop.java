@@ -16,8 +16,7 @@ import net.nerdorg.minehop.config.ConfigWrapper;
 import net.nerdorg.minehop.data.DataManager;
 import net.nerdorg.minehop.entity.MobManager;
 import net.nerdorg.minehop.entity.ModEntities;
-import net.nerdorg.minehop.entity.custom.ResetEntity;
-import net.nerdorg.minehop.entity.custom.Zone;
+import net.nerdorg.minehop.entity.custom.*;
 import net.nerdorg.minehop.hns.HNSManager;
 import net.nerdorg.minehop.item.ModItems;
 import net.nerdorg.minehop.motd.MotdManager;
@@ -104,9 +103,10 @@ public class Minehop implements ModInitializer {
 
 		MotdManager.register();
 
+		FabricDefaultAttributeRegistry.register(ModEntities.GAMEMODE_ENTITY, GamemodeEntity.createResetEntityAttributes());
 		FabricDefaultAttributeRegistry.register(ModEntities.RESET_ENTITY, ResetEntity.createResetEntityAttributes());
-		FabricDefaultAttributeRegistry.register(ModEntities.START_ENTITY, ResetEntity.createResetEntityAttributes());
-		FabricDefaultAttributeRegistry.register(ModEntities.END_ENTITY, ResetEntity.createResetEntityAttributes());
-		FabricDefaultAttributeRegistry.register(ModEntities.REPLAY_ENTITY, ResetEntity.createResetEntityAttributes());
+		FabricDefaultAttributeRegistry.register(ModEntities.START_ENTITY, StartEntity.createResetEntityAttributes());
+		FabricDefaultAttributeRegistry.register(ModEntities.END_ENTITY, EndEntity.createResetEntityAttributes());
+		FabricDefaultAttributeRegistry.register(ModEntities.REPLAY_ENTITY, ReplayEntity.createResetEntityAttributes());
 	}
 }
