@@ -29,6 +29,7 @@ import java.util.List;
 public class PacketHandler {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static boolean registered = false;
+    public static final int MAX_BUFF_CHARS = 24_000;
 
     public static void register() {
         registerC2S();
@@ -208,12 +209,9 @@ public class PacketHandler {
     }
 
     public static void sendMaps(ServerPlayerEntity player) {
-        String buff = "";
-
-        buff += Minehop.mapList.size();
-
         for (DataManager.MapData mapData : Minehop.mapList) {
-            buff += "^";
+            String buff = "";
+
             buff += mapData.name;buff += "~";
             buff += mapData.x;buff += "~";
             buff += mapData.y;buff += "~";
@@ -225,47 +223,63 @@ public class PacketHandler {
             buff += mapData.hns;buff += "~";
             buff += mapData.difficulty;buff += "~";
             buff += mapData.player_count;
-        }
 
-        ServerPlayNetworking.send(player,  new SendMapPayload(buff));
+            ServerPlayNetworking.send(player,  new SendMapPayload(buff));
+        }
     }
 
     public static void sendRecords(ServerPlayerEntity player) {
-        String buff = "";
+        ServerPlayNetworking.send(player, new SendRecordPayload("#RESET"));
 
-        buff += Minehop.mapList.size();
+        StringBuilder sb = new StringBuilder(8192);
 
         for (DataManager.MapData mapData : Minehop.mapList) {
-            DataManager.RecordData recordData = DataManager.getRecord(mapData.name);
-            buff += "^";
-            if (recordData != null) {
-                buff += recordData.map_name;buff += "~";
-                buff += recordData.name;buff += "~";
-                buff += recordData.time;
+            DataManager.RecordData rd = DataManager.getRecord(mapData.name);
+
+            String mapName, name;
+            double time;
+            if (rd != null) {
+                mapName = rd.map_name;
+                name    = rd.name;
+                time    = rd.time;
+            } else {
+                mapName = mapData.name;
+                name    = "None";
+                time    = 1_000_000;
             }
-            else {
-                buff += mapData.name;buff += "~";
-                buff += "None";buff += "~";
-                buff += 1000000;
+
+            String line = mapName + "~" + name + "~" + time + "\n";
+
+            if (sb.length() + line.length() > MAX_BUFF_CHARS) {
+                ServerPlayNetworking.send(player, new SendRecordPayload(sb.toString()));
+                sb.setLength(0);
             }
+            sb.append(line);
         }
 
-        ServerPlayNetworking.send(player,  new SendRecordPayload(buff));
+        if (sb.length() > 0) {
+            ServerPlayNetworking.send(player, new SendRecordPayload(sb.toString()));
+        }
     }
 
     public static void sendPersonalRecords(ServerPlayerEntity player) {
-        String buff = "";
+        ServerPlayNetworking.send(player, new SendPersonalRecordPayload("#RESET"));
 
-        buff += Minehop.personalRecordList.size();
+        StringBuilder sb = new StringBuilder(8192);
 
-        for (DataManager.RecordData recordData : Minehop.personalRecordList) {
-            buff += "^";
-            buff += recordData.map_name;buff += "~";
-            buff += recordData.name;buff += "~";
-            buff += recordData.time;
+        for (DataManager.RecordData rd : Minehop.personalRecordList) {
+            String line = rd.map_name + "~" + rd.name + "~" + rd.time + "\n";
+
+            if (sb.length() + line.length() > MAX_BUFF_CHARS) {
+                ServerPlayNetworking.send(player, new SendPersonalRecordPayload(sb.toString()));
+                sb.setLength(0);
+            }
+            sb.append(line);
         }
 
-        ServerPlayNetworking.send(player,  new SendPersonalRecordPayload(buff));
+        if (!sb.isEmpty()) {
+            ServerPlayNetworking.send(player, new SendPersonalRecordPayload(sb.toString()));
+        }
     }
 
     public static void sendPower(ServerPlayerEntity player, double x_power, double y_power, double z_power, BlockPos boosterPos) {

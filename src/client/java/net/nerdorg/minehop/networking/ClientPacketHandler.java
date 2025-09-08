@@ -176,45 +176,74 @@ public class ClientPacketHandler {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(SendRecordPayload.ID, (payload, ctx) -> {
-            List<DataManager.RecordData> newRecordList = new ArrayList<>();
-            String splitBuff[] = payload.buff().split("\\^");
-            int recordCount = Integer.parseInt(splitBuff[0]);
-
-            for (int i = 1; i < recordCount+1; i++) {
-                String buff[] = splitBuff[i].split("~");
-                String map_name = buff[0];
-                String name = buff[1];
-                double time = Double.parseDouble(buff[2]);
-                if (time > 0) {
-                    newRecordList.add(new DataManager.RecordData(name, map_name, time));
-                }
-            }
+            String buff = payload.buff();
 
             ctx.client().execute(() -> {
-                Minehop.recordList = newRecordList;
+                if ("#RESET".equals(buff)) {
+                    Minehop.recordList = new ArrayList<>();
+                    return;
+                }
+
+                List<DataManager.RecordData> list = Minehop.recordList;
+                String[] lines = buff.split("\\n");
+
+                for (String line : lines) {
+                    if (line.isEmpty()) continue;
+
+                    String[] parts = line.split("~", 3);
+                    if (parts.length < 3) continue;
+
+                    String mapName = parts[0];
+                    String name    = parts[1];
+
+                    double time;
+                    try {
+                        time = Double.parseDouble(parts[2]);
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+
+                    for (Iterator<DataManager.RecordData> it = list.iterator(); it.hasNext();) {
+                        if (Objects.equals(it.next().map_name, mapName)) {
+                            it.remove();
+                            break;
+                        }
+                    }
+
+                    if (time > 0) {
+                        list.add(new DataManager.RecordData(name, mapName, time));
+                    }
+                }
+
+                Minehop.recordList = list;
             });
         });
 
         ClientPlayNetworking.registerGlobalReceiver(SendMapPayload.ID, (payload, ctx) -> {
-            String splitBuff[] = payload.buff().split("\\^");
-            List<DataManager.MapData> newMapList = new ArrayList<>();
-            int recordCount = Integer.parseInt(splitBuff[0]);
+            String buff[] = payload.buff().split("~");
+            List<DataManager.MapData> newMapList = Minehop.mapList;
+            //int recordCount = Integer.parseInt(splitBuff[0]);
 
-            for (int i = 1; i < recordCount+1; i++) {
-                String buff[] = splitBuff[i].split("~");
-                String name = buff[0];
-                double x = Double.parseDouble(buff[1]);
-                double y = Double.parseDouble(buff[2]);
-                double z = Double.parseDouble(buff[3]);
-                double xrot = Double.parseDouble(buff[4]);
-                double yrot = Double.parseDouble(buff[5]);
-                String worldKey = buff[6];
-                boolean arena = Boolean.parseBoolean(buff[7]);
-                boolean hns = Boolean.parseBoolean(buff[8]);
-                int difficulty = Integer.parseInt(buff[9]);
-                int player_count = Integer.parseInt(buff[10]);
-                newMapList.add(new DataManager.MapData(name, x, y, z, xrot, yrot, worldKey, arena, hns, difficulty, player_count));
+            //for (int i = 1; i < recordCount+1; i++) {
+            String name = buff[0];
+            for (DataManager.MapData mapData : newMapList) {
+                if (mapData.name.equals(name)) {
+                    newMapList.remove(mapData);
+                    break;
+                }
             }
+            double x = Double.parseDouble(buff[1]);
+            double y = Double.parseDouble(buff[2]);
+            double z = Double.parseDouble(buff[3]);
+            double xrot = Double.parseDouble(buff[4]);
+            double yrot = Double.parseDouble(buff[5]);
+            String worldKey = buff[6];
+            boolean arena = Boolean.parseBoolean(buff[7]);
+            boolean hns = Boolean.parseBoolean(buff[8]);
+            int difficulty = Integer.parseInt(buff[9]);
+            int player_count = Integer.parseInt(buff[10]);
+            newMapList.add(new DataManager.MapData(name, x, y, z, xrot, yrot, worldKey, arena, hns, difficulty, player_count));
+            //}
 
             ctx.client().execute(() -> {
                 Minehop.mapList = newMapList;
@@ -223,22 +252,45 @@ public class ClientPacketHandler {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(SendPersonalRecordPayload.ID, (payload, ctx) -> {
-            List<DataManager.RecordData> newRecordList = new ArrayList<>();
-            String splitBuff[] = payload.buff().split("\\^");
-            int recordCount = Integer.parseInt(splitBuff[0]);
-
-            for (int i = 1; i < recordCount+1; i++) {
-                String buff[] = splitBuff[i].split("~");
-                String map_name = buff[0];
-                String name = buff[1];
-                double time = Double.parseDouble(buff[2]);
-                if (time > 0) {
-                    newRecordList.add(new DataManager.RecordData(name, map_name, time));
-                }
-            }
+            String buff = payload.buff();
 
             ctx.client().execute(() -> {
-                Minehop.personalRecordList = newRecordList;
+                if ("#RESET".equals(buff)) {
+                    Minehop.personalRecordList = new ArrayList<>();
+                    return;
+                }
+
+                List<DataManager.RecordData> list = Minehop.personalRecordList;
+                String[] lines = buff.split("\\n");
+
+                for (String line : lines) {
+                    if (line.isEmpty()) continue;
+
+                    String[] parts = line.split("~", 3);
+                    if (parts.length < 3) continue;
+
+                    String mapName = parts[0];
+                    String name    = parts[1];
+                    double time;
+                    try {
+                        time = Double.parseDouble(parts[2]);
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+
+                    for (Iterator<DataManager.RecordData> it = list.iterator(); it.hasNext();) {
+                        if (Objects.equals(it.next().map_name, mapName)) {
+                            it.remove();
+                            break;
+                        }
+                    }
+
+                    if (time > 0) {
+                        list.add(new DataManager.RecordData(name, mapName, time));
+                    }
+                }
+
+                Minehop.personalRecordList = list;
             });
         });
 
