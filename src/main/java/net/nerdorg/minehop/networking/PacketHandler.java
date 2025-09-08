@@ -2,6 +2,8 @@ package net.nerdorg.minehop.networking;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -254,18 +256,19 @@ public class PacketHandler {
     }
 
     public static void sendPersonalRecords(ServerPlayerEntity player) {
-        String buff = "";
-
-        buff += Minehop.personalRecordList.size();
-
+        PropertyMap map = new PropertyMap();
+        int index = 0;
         for (DataManager.RecordData recordData : Minehop.personalRecordList) {
-            buff += "^";
-            buff += recordData.map_name;buff += "~";
-            buff += recordData.name;buff += "~";
-            buff += recordData.time;
+            Property property = new Property(
+                    recordData.map_name,
+                    recordData.name,
+                    ""+recordData.time
+            );
+            map.put(""+index, property);
+            index++;
         }
 
-        ServerPlayNetworking.send(player,  new SendPersonalRecordPayload(buff));
+        ServerPlayNetworking.send(player,  new SendPersonalRecordPayload(map));
     }
 
     public static void sendPower(ServerPlayerEntity player, double x_power, double y_power, double z_power, BlockPos boosterPos) {

@@ -1,5 +1,7 @@
 package net.nerdorg.minehop.networking;
 
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.util.UUIDTypeAdapter;
 import io.netty.buffer.Unpooled;
@@ -224,17 +226,15 @@ public class ClientPacketHandler {
 
         ClientPlayNetworking.registerGlobalReceiver(SendPersonalRecordPayload.ID, (payload, ctx) -> {
             List<DataManager.RecordData> newRecordList = new ArrayList<>();
-            String splitBuff[] = payload.buff().split("\\^");
-            int recordCount = Integer.parseInt(splitBuff[0]);
+            PropertyMap map = payload.map();
 
-            for (int i = 1; i < recordCount+1; i++) {
-                String buff[] = splitBuff[i].split("~");
-                String map_name = buff[0];
-                String name = buff[1];
-                double time = Double.parseDouble(buff[2]);
-                if (time > 0) {
-                    newRecordList.add(new DataManager.RecordData(name, map_name, time));
-                }
+            for (Property key : map.values()) {
+                assert Objects.requireNonNull(key).signature() != null;
+                newRecordList.add(new DataManager.RecordData(
+                        key.name(),
+                        key.value(),
+                        Double.parseDouble(key.signature())
+                ));
             }
 
             ctx.client().execute(() -> {
