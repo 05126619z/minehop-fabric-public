@@ -52,14 +52,14 @@ public class StartEntity extends Zone {
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
-        int x1 = nbt.getInt("Corner1X", 0);
-        int y1 = nbt.getInt("Corner1Y", 0);
-        int z1 = nbt.getInt("Corner1Z", 0);
+        int x1 = nbt.getInt("Corner1X", 1);
+        int y1 = nbt.getInt("Corner1Y", 1);
+        int z1 = nbt.getInt("Corner1Z", 1);
         corner1 = new BlockPos(x1, y1, z1);
 
-        int x2 = nbt.getInt("Corner2X", 0);
-        int y2 = nbt.getInt("Corner2Y", 0);
-        int z2 = nbt.getInt("Corner2Z", 0);
+        int x2 = nbt.getInt("Corner2X", 1);
+        int y2 = nbt.getInt("Corner2Y", 1);
+        int z2 = nbt.getInt("Corner2Z", 1);
         corner2 = new BlockPos(x2, y2, z2);
     }
 
