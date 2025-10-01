@@ -2,8 +2,6 @@ package net.nerdorg.minehop.networking;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -31,6 +29,7 @@ import java.util.List;
 public class PacketHandler {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static boolean registered = false;
+    public static final int MAX_BUFF_CHARS = 24_000;
 
     public static void register() {
         registerC2S();
@@ -210,12 +209,9 @@ public class PacketHandler {
     }
 
     public static void sendMaps(ServerPlayerEntity player) {
-        String buff = "";
-
-        buff += Minehop.mapList.size();
-
         for (DataManager.MapData mapData : Minehop.mapList) {
-            buff += "^";
+            String buff = "";
+
             buff += mapData.name;buff += "~";
             buff += mapData.x;buff += "~";
             buff += mapData.y;buff += "~";
@@ -227,48 +223,63 @@ public class PacketHandler {
             buff += mapData.hns;buff += "~";
             buff += mapData.difficulty;buff += "~";
             buff += mapData.player_count;
-        }
 
-        ServerPlayNetworking.send(player,  new SendMapPayload(buff));
+            ServerPlayNetworking.send(player,  new SendMapPayload(buff));
+        }
     }
 
     public static void sendRecords(ServerPlayerEntity player) {
-        String buff = "";
+        ServerPlayNetworking.send(player, new SendRecordPayload("#RESET"));
 
-        buff += Minehop.mapList.size();
+        StringBuilder sb = new StringBuilder(8192);
 
         for (DataManager.MapData mapData : Minehop.mapList) {
-            DataManager.RecordData recordData = DataManager.getRecord(mapData.name);
-            buff += "^";
-            if (recordData != null) {
-                buff += recordData.map_name;buff += "~";
-                buff += recordData.name;buff += "~";
-                buff += recordData.time;
+            DataManager.RecordData rd = DataManager.getRecord(mapData.name);
+
+            String mapName, name;
+            double time;
+            if (rd != null) {
+                mapName = rd.map_name;
+                name    = rd.name;
+                time    = rd.time;
+            } else {
+                mapName = mapData.name;
+                name    = "None";
+                time    = 1_000_000;
             }
-            else {
-                buff += mapData.name;buff += "~";
-                buff += "None";buff += "~";
-                buff += 1000000;
+
+            String line = mapName + "~" + name + "~" + time + "\n";
+
+            if (sb.length() + line.length() > MAX_BUFF_CHARS) {
+                ServerPlayNetworking.send(player, new SendRecordPayload(sb.toString()));
+                sb.setLength(0);
             }
+            sb.append(line);
         }
 
-        ServerPlayNetworking.send(player,  new SendRecordPayload(buff));
+        if (sb.length() > 0) {
+            ServerPlayNetworking.send(player, new SendRecordPayload(sb.toString()));
+        }
     }
 
     public static void sendPersonalRecords(ServerPlayerEntity player) {
-        PropertyMap map = new PropertyMap();
-        int index = 0;
-        for (DataManager.RecordData recordData : Minehop.personalRecordList) {
-            Property property = new Property(
-                    recordData.map_name,
-                    recordData.name,
-                    ""+recordData.time
-            );
-            map.put(""+index, property);
-            index++;
+        ServerPlayNetworking.send(player, new SendPersonalRecordPayload("#RESET"));
+
+        StringBuilder sb = new StringBuilder(8192);
+
+        for (DataManager.RecordData rd : Minehop.personalRecordList) {
+            String line = rd.map_name + "~" + rd.name + "~" + rd.time + "\n";
+
+            if (sb.length() + line.length() > MAX_BUFF_CHARS) {
+                ServerPlayNetworking.send(player, new SendPersonalRecordPayload(sb.toString()));
+                sb.setLength(0);
+            }
+            sb.append(line);
         }
 
-        ServerPlayNetworking.send(player,  new SendPersonalRecordPayload(map));
+        if (!sb.isEmpty()) {
+            ServerPlayNetworking.send(player, new SendPersonalRecordPayload(sb.toString()));
+        }
     }
 
     public static void sendPower(ServerPlayerEntity player, double x_power, double y_power, double z_power, BlockPos boosterPos) {
