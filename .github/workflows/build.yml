@@ -9,10 +9,11 @@ on: [pull_request, push, workflow_dispatch]
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         # Use these Java versions
         java: [
-          17,    # Current Java LTS & minimum supported by Minecraft
+#          17,    # Current Java LTS & minimum supported by Minecraft # Nope. 1.21.5 does not support 17.
           21,    # Current Java LTS
         ]
         # and run on both Linux and Windows
@@ -31,7 +32,7 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew build --parallel
+        run: ./gradlew build
 #      - name: capture build artifacts
 #        if: ${{ runner.os == 'Linux' && matrix.java == '21' }} # Only upload artifacts built from latest java on one OS
 #        uses: actions/upload-artifact@v4
